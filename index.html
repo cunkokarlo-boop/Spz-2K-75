@@ -141,7 +141,7 @@ body{padding-bottom:76px}
 <p class="mut" style="margin:0">Ništa se ne može pokvariti — slobodno isprobajte.</p><button type="button" id="dOk">Razumijem</button></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const CFG={brend:'flash',izborIspune:true,cijena:true,autoFull:true ,s44:false  ,izvedba:{straga:'perfo',lijevo:'mreza',desno:'perfo',vrata:'mreza'},
+const CFG={brend:'flash',zastita:true,pdf:false ,izborIspune:true,cijena:true,autoFull:true ,s44:false  ,izvedba:{straga:'mreza',lijevo:'mreza',desno:'mreza',vrata:'mreza'},
   umami:'17cf6bf3-9670-45c1-8e5b-26cfcf0ec355',umamiSrc:'https://cloud.umami.is/script.js',umamiJa:'65412c8a',
   L:3150,D:1350,
   nagib:2.5,nize:'L',teren:'ravno',
@@ -488,7 +488,7 @@ const r2=v=>Math.round((v+1e-9)*100)/100,eur2=v=>r2(v).toLocaleString('hr-HR',{m
 function ponudaStavke(){cijena();return ZADNJE.rows.filter(r=>r[3]!=null||r[1]!=null).map(([t,m2,c,iz,jm])=>{t=PON.opisi[t]||t;if(m2==null)return [t,null,null,r2(iz),null];const q=jm==='m²'?r2(m2):m2;return [t,q,c,r2(q*c),jm]})}
 function ponudaHTML(){const S=ponudaStavke(),bez=r2(S.reduce((a,x)=>a+(x[3]||0),0)),pdv=r2(bez*CIJ.pdv),sa=r2(bez+pdv),d=new Date(),dat=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+'.';
   const u=['straga','lijevo','desno','vrata'],nz={straga:'straga',lijevo:'lijevi bok',desno:'desni bok',vrata:'vrata'},gr={};u.forEach(k=>{const t=ISP[cfg.isp[k]].t.toLowerCase();(gr[t]=gr[t]||[]).push(nz[k])});
-  const izv='Ispuna: '+Object.entries(gr).map(([t,a])=>a.join(' i ')+' '+t).join(', ')+'. Teren: '+(TMODE==='ravno'?'ravan plato (pripremni radovi).':'kosina, konstrukcija prati nagib.');
+  const izv='Ispuna: '+Object.entries(gr).map(([t,a])=>(a.length>1?a.slice(0,-1).join(', ')+' i '+a[a.length-1]:a[0])+' '+t).join(', ')+'. Teren: '+(TMODE==='ravno'?'ravan plato (pripremni radovi).':'kosina, konstrukcija prati nagib.');
   const red=S.map((x,i)=>`<tr><td>${i+1}.</td><td>${esc(x[0])}</td><td class="n">${x[1]==null?'':KOL(x[1],x[4])}</td><td class="n">${x[2]==null?'':eur2(x[2])+'/'+x[4]}</td><td class="n">${eur2(x[3])}</td></tr>`).join('');
   const tel=BREND.telTxt.replace(/ /g,'');
   return {bez,pdv,sa,izv,html:`<header class="zag"><div class="r1"><img src="${BREND.logo}" alt="Flash Metal"><div class="kont"><a href="mailto:${BREND.mail}">${esc(BREND.mail)}</a><span>Mob: <a href="tel:${tel}">${esc(BREND.telTxt)}</a></span></div></div>
@@ -533,4 +533,10 @@ const TRAG=(()=>{if(!CFG.umami)return{t(){}};
   [['bShare','dijeli'],['bPon','ponuda-otvori'],['pMail','ponuda-email'],['pWa','ponuda-whatsapp'],['pCp','ponuda-kopiraj'],['sWa','dijeli-whatsapp'],['sMail','dijeli-email'],['sCp','dijeli-kopiraj'],['bHelp','pomoc'],['bOff','nesluzbena-ponuda'],['oPdf','nesluzbena-pdf'],['oSl','sluzbena-iz-ponude']].forEach(([id,n])=>{const e=$(id);if(e)e.addEventListener('click',()=>t(n,{kod:kod(true)}))});
   document.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>t('pogled',{v:b.dataset.v})));
   return{t}})();
+
+
+(()=>{if(CFG.pdf===false){const b=document.getElementById('oPdf');if(b)b.remove()}
+ if(!CFG.zastita)return;document.addEventListener('contextmenu',e=>e.preventDefault());
+ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['s','p','u'].includes((e.key||'').toLowerCase()))e.preventDefault()});
+ const st=document.createElement('style');st.textContent='@media print{body>*{display:none!important}body::after{content:"Ispis nije dostupan.";display:block;font:16px sans-serif;padding:40px}}.pon{-webkit-user-select:none;user-select:none}';document.head.appendChild(st)})();
 </script></body></html>
