@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="hr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Spremište za kontejnere · F. Tuđmana 75</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#eef0ef;--panel:#fff;--fg:#1a1f22;--mut:#56626a;--line:#d3d8d7;--scene:#dfe4e3;--acc:#2d5d62;--f:"IBM Plex Sans",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#121618;--panel:#1a2023;--fg:#e6eaeb;--mut:#9aa6ab;--line:#2d3538;--scene:#2a3134;--acc:#5aa3a9;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 var(--f)}
+.wrap{max-width:1180px;margin:0 auto;padding:12px max(14px,env(safe-area-inset-right)) 36px max(14px,env(safe-area-inset-left));display:grid;gap:12px}
+h1{font-size:20px;margin:0;font-weight:600}h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0 0 8px;font-weight:600}
+.lay{display:grid;gap:12px}
+@media (min-width:900px){.lay{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:start}.side{max-height:calc(100svh - 70px);overflow:auto}}
+.stage{position:relative;height:clamp(340px,calc(100svh - 300px),620px);background:var(--scene);border:1px solid var(--line);border-radius:10px;overflow:hidden;touch-action:none}
+@media (max-width:899px){.stage{position:sticky;top:0;z-index:2;height:46svh;min-height:300px}}
+@media (min-width:900px){.stage{position:sticky;top:10px;height:min(640px,calc(100svh - 80px))}}
+.stage canvas{display:block;width:100%;height:100%}
+
+.fsb{position:absolute;right:calc(10px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));z-index:3;width:48px;height:48px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:600 22px/1 var(--f);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.fsbar{display:none;position:absolute;left:calc(10px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));z-index:3;gap:6px;flex-wrap:wrap;max-width:calc(100% - 80px)}
+.fsbar button{font:600 15px var(--f);min-height:48px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+.fsbar button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.stage.full{position:fixed!important;inset:0;width:100vw;height:100vh;height:100dvh;max-height:none;min-height:0;z-index:1000;border:0;border-radius:0;top:0}
+.fspog{position:relative}.fspog .meni{display:none;position:absolute;left:0;top:54px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px;gap:4px;flex-direction:column;box-shadow:0 6px 18px rgba(0,0,0,.2);min-width:150px}
+.fspog.on .meni{display:flex}.fspog .meni button{border:0;text-align:left;border-radius:10px}
+.stage.full .fsbar{display:flex}.stage.full .hint{display:none}
+body.fsl{overflow:hidden}
+.hint{transition:opacity .6s;position:absolute;left:10px;top:10px;font-size:13px;color:var(--mut);background:var(--panel);padding:4px 10px;border-radius:999px;border:1px solid var(--line)}
+.doors{position:absolute;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;max-width:calc(100% - 16px)}
+.doors button{font:600 16px var(--f);min-height:48px;padding:10px 16px;border-radius:999px;border:0;background:var(--acc);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
+.doors button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+@media (max-width:420px){.doors button{font-size:15px;padding:10px 12px}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.side{display:grid;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.row button{font:inherit;font-size:16px;min-height:48px;border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:8px 14px;border-radius:999px;cursor:pointer;text-align:left}
+.row button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.opis{margin:0}.err{padding:20px;color:var(--mut)}
+.top{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.help{flex:none;width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:600 20px var(--f);cursor:pointer}
+[hidden]{display:none!important}
+.primjer{display:inline-block;margin-left:8px;font-size:12px;letter-spacing:0;text-transform:none;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-weight:400}
+table{border-collapse:collapse;width:100%;font-size:15px}td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}td.n,th.n{text-align:right;white-space:nowrap}
+tr.tot td{font-weight:600;border-bottom:0}.mut{color:var(--mut);font-size:14px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--fg);color:var(--bg);padding:10px max(14px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:600}
+.bar button{white-space:nowrap;font:600 15px var(--f);min-height:44px;padding:8px 14px;border-radius:999px;border:0;background:var(--acc);color:#fff}
+body{padding-bottom:76px}
+@media (max-width:899px){#cij{scroll-margin-top:calc(46svh + 12px)}}
+.dlg{position:fixed;inset:0;z-index:9;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px}.dlg.on{display:flex}
+.dlg .in{background:var(--panel);color:var(--fg);border-radius:12px;max-width:520px;width:100%;padding:16px;display:grid;gap:10px;max-height:90svh;overflow:auto}
+.dlg ol{margin:0;padding-left:22px;display:grid;gap:8px}.dlg button{justify-self:end;font:600 16px var(--f);min-height:48px;padding:10px 18px;border-radius:999px;border:0;background:var(--acc);color:#fff}
+.send{display:grid;gap:8px}.send a,.send button{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:999px;font:600 16px var(--f);text-decoration:none;border:0;cursor:pointer}
+.send .mail{background:var(--acc);color:#fff}.send .wa{background:#1f7a4a;color:#fff}.send .cp{background:var(--panel);color:var(--fg);border:1px solid var(--line)}
+.sdlg{position:fixed;inset:0;z-index:9;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;padding:12px}.sdlg.on{display:flex}
+.sdlg .in{background:var(--panel);color:var(--fg);border-radius:14px;max-width:460px;width:100%;padding:16px;display:grid;gap:10px}
+.sdlg pre{white-space:pre-wrap;font:14px/1.4 var(--f);background:var(--bg);border-radius:8px;padding:10px;margin:0;max-height:34svh;overflow:auto}
+.odlg{position:fixed;inset:0;z-index:10;background:#e9ecea;display:none;overflow:auto}.odlg.on{display:block}
+.odlg .ob{position:sticky;top:0;display:flex;gap:8px;justify-content:flex-end;padding:8px;background:#e9ecea;z-index:1}.odlg .ob button{min-height:52px;padding:10px 18px;border-radius:999px;font:600 16px var(--f);border:1px solid #999;background:#fff;color:#1a1f22;cursor:pointer}.odlg .ob .gl{background:#2d5d62;color:#fff;border:0}
+.pon{background:#fff;color:#222;width:210mm;max-width:100%;min-height:297mm;margin:0 auto;font:13.5px/1.4 Arial,Helvetica,"Liberation Sans",sans-serif;box-sizing:border-box}.pon *{box-sizing:border-box}
+@media screen and (max-width:820px){.pon{width:100%;min-height:0}}
+.pon .zag{background:#000;color:#fff;border-bottom:2px solid #e02020;border-radius:0;padding:10px 18px 8px;display:block}
+.pon .zag .r1{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.pon .zag img{height:46px;display:block}
+.pon .zag .kont{display:flex;gap:2px 16px;flex-wrap:wrap;justify-content:flex-end;font-size:14px;color:#c9c9cc}.pon .zag .kont a{color:#fff;font-weight:700;text-decoration:none}
+.pon .zag .l1{font-size:11px;font-weight:700;margin-top:8px}.pon .zag .l2{font-size:11px;color:#bfbfbf}
+.pon .body{padding:20px 26px 26px}
+.pon h1{font-size:22px;color:#2b2b2b;margin:6px 0;border-bottom:2px solid #2b2b2b;padding-bottom:10px;font-weight:700}
+.pon .info{display:flex;justify-content:space-between;gap:14px;margin:16px 0 14px;flex-wrap:wrap}.pon .info p{margin:4px 0}
+.pon .kupac{background:#f2f2f2;border:1px solid #000;padding:8px 10px;font-size:12px;font-style:italic;color:#3a3a3a;max-width:250px;white-space:pre-wrap}
+.pon .pay{background:#f2f2f2;border-top:1px solid #999;border-bottom:1px solid #999;padding:8px 10px;font-size:12px;margin-bottom:14px}
+.pon .pred{margin:0 0 4px;font-weight:700}.pon .izv{margin:0 0 12px;color:#444}
+.pon table{border-collapse:collapse;width:100%;font-size:13px;margin-bottom:18px}.pon th,.pon td{padding:6px 4px;border-bottom:1px solid #d3d8d7;text-align:left;vertical-align:top}
+.pon th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#56626a;font-weight:700}.pon td.n,.pon th.n{text-align:right;white-space:nowrap}.pon td:first-child{color:#56626a;width:22px}
+.pon tr{break-inside:avoid}
+.pon .totals{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #000;margin-bottom:24px;break-inside:avoid}
+.pon .totals>div{padding:12px 8px;text-align:center;border-right:1px solid #000;background:#f2f2f2}.pon .totals>div:last-child{border-right:0}
+.pon .lbl{font-size:11px;font-weight:700;color:#2b2b2b;margin-bottom:6px}.pon .val{font-size:15px;font-weight:700}
+.pon .opc td{font-style:italic;color:#56626a;border-top:1px dashed #999}
+.pon .nap{margin:14px 0 20px;padding:10px 12px;background:#f7f7f7;border-left:3px solid #999;font-size:12.5px;color:#444;white-space:pre-wrap}
+.pon .nesl{margin:8px 0 0;padding:8px 12px;border:2px solid #e02020;font-weight:700;color:#b01818}
+.pon .sig{font-size:13px;margin-top:30px}
+@media print{body>*:not(#odlg){display:none!important}#odlg{position:static;display:block;background:#fff;overflow:visible}#odlg .ob{display:none}.pon{width:210mm;min-height:297mm}@page{size:A4;margin:0}html{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.sdlg input{font:16px var(--f);min-height:48px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%;box-sizing:border-box}
+.sbtn{font:600 16px var(--f);min-height:52px;padding:10px 18px;border-radius:999px;border:0;background:var(--acc);color:#fff;cursor:pointer;width:100%}
+.zag{background:#000;border-bottom:2px solid #e02020;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;flex-wrap:wrap}
+.zag img{height:44px;width:auto;display:block}
+.zag .kont{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:14px;color:#c9c9cc;justify-content:flex-end}.zag .kont a{color:#fff;text-decoration:none;font-weight:600}
+</style>
+</head><body>
+<div class="wrap">
+<header class="zag" id="zag" aria-label="Zaglavlje"><img id="zLogo" alt=""><div class="kont" id="kont"></div></header>
+<div class="top"><h1>Spremište za kontejnere · F. Tuđmana 75 · 2 × 1100 L</h1><button class="help" id="bHelp" type="button" aria-label="Pomoć">?</button></div>
+<div class="lay">
+ <div class="stage" id="stage"><div class="hint" id="hint">vrti prstom · dva prsta zoom</div>
+  <button type="button" class="fsb" id="bFs" aria-pressed="false" aria-label="Prikaži 3D preko cijelog zaslona" title="Cijeli zaslon">⛶</button>
+  <div class="fsbar" id="fsbar" role="group" aria-label="Prikaži ili sakrij"></div>
+  <div class="doors" role="group" aria-label="Vrata">
+   <button type="button" data-d="L" aria-pressed="false">Otvori lijevo</button>
+   <button type="button" data-d="D" aria-pressed="false">Otvori desno</button>
+   <button type="button" data-d="zat" aria-pressed="true">Zatvori</button>
+  </div></div>
+ <div class="side">
+  <div class="box"><h2>Pogled</h2><div class="row">
+   <button type="button" data-v="lok" aria-pressed="true">Lokacija</button><button type="button" data-v="iso" aria-pressed="false">3D</button><button type="button" data-v="front" aria-pressed="false">Sprijeda</button><button type="button" data-v="top" aria-pressed="false">Odozgo</button>
+   <button type="button" id="bKrov" aria-pressed="true">Krov</button><button type="button" id="bKo" aria-pressed="true">Posude</button><button type="button" id="bPil" aria-pressed="false">Piloti</button><button type="button" id="bS44" aria-pressed="false">Susjedno 75A</button></div><p class="opis" id="o-pil" hidden style="margin-top:8px">Piloti (zemljani vijci): inox Ø60,3 s punom jezgrom, oko 0,9 m u tlu, ispod svakog stupa. Samo kad se ugrađuje na asfalt — opcija, cijena u ponudi; na izbetoniran temelj ide na tiple.</p></div>
+  <div class="box"><h2>Teren</h2><div class="row" id="g-t"><button type="button" data-t="ravno" aria-pressed="true">Ravno (preporuka)</button><button type="button" data-t="kosina" aria-pressed="false">Kosina 2,5°</button></div><p class="opis" id="o-t" style="margin-top:8px"></p></div>
+  <div class="box"><h2>Ispuna stijena i vrata</h2><div class="row" id="g-pl" aria-label="Ploha"></div><div class="row" id="g-isp" style="margin-top:8px" aria-label="Uzorak"></div><p class="opis" id="o-isp" style="margin-top:8px"></p></div>
+  <div class="box" id="boxVrata"><h2>Vrata</h2><div class="row" id="g-n"></div></div>
+  <div class="box"><h2>Raspored unutra</h2><div class="row" id="g-r"></div><p class="opis" id="o-r" style="margin-top:8px"></p></div>
+
+  <section class="box" id="stat"><h2>Statika · neslužbeni izračun</h2><p class="mut" style="margin:0 0 8px">Orijentacijski izračun za ovu izvedbu. Nije službeni statički proračun ni projekt; službeni nalaz izrađuje i potpisuje ovlašteni inženjer.</p><table id="tStat"></table><ul id="uStat" style="margin:8px 0 0;padding-left:20px"></ul><h2 style="margin-top:14px">Temelj · 2 varijante</h2><table id="tTem"></table><p class="mut" id="nTem" style="margin:8px 0 0"></p></section>
+<section class="box"><h2>Ukratko</h2><ul id="ukr"></ul></section>
+<p class="mut" id="nTrag" hidden style="margin:0;font-size:14px">Stranica bez kolačića i bez osobnih podataka broji posjete i odabrane varijante radi pripreme ponude.</p>
+ </div>
+</div></div>
+<div class="bar" role="status"><span id="barTxt" role="button" tabindex="0" style="cursor:pointer"></span><span style="display:flex;gap:6px"><button type="button" id="bShare" style="background:transparent;border:1px solid currentColor;color:inherit">Dijeli</button><button type="button" id="bPon">Zatraži službenu ponudu</button></span></div>
+<div class="sdlg" id="sdlg" role="dialog" aria-modal="true" aria-labelledby="sT"><div class="in"><h2 id="sT">Dijeli varijantu</h2>
+<div class="row" id="sCijRow" role="group" aria-label="Cijena u poruci"><button type="button" data-sc="1" aria-pressed="true">S cijenom</button><button type="button" data-sc="0" aria-pressed="false">Bez cijene</button></div>
+<pre id="sTxt"></pre><div class="send"><button type="button" class="mail" id="sShare">Dijeli…</button><a class="wa" id="sWa" href="#" target="_blank" rel="noopener">WhatsApp</a><a class="cp" id="sMail" href="#">E-mail</a><button type="button" class="cp" id="sCp">Kopiraj tekst</button></div>
+<p class="mut" id="sInfo" style="margin:0">Poveznica u poruci otvara upravo ovu varijantu. Ništa se ne sprema na poslužitelj.</p>
+<button type="button" class="cp" id="sZat" style="min-height:48px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:600 16px var(--f)">Zatvori</button></div></div>
+<div class="sdlg" id="pdlg" role="dialog" aria-modal="true" aria-labelledby="pT"><div class="in"><h2 id="pT">Zatraži službenu ponudu</h2>
+<p class="mut" style="margin:0" id="pUvod"></p>
+<label for="pTel" style="font-weight:600">Broj telefona (po želji)</label><input id="pTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="npr. 091 234 5678">
+<pre id="pTxt"></pre><div class="send"><a class="mail" id="pMail" href="#">Pošalji e-mailom</a><a class="wa" id="pWa" href="#" target="_blank" rel="noopener">Pošalji na WhatsApp</a><button type="button" class="cp" id="pCp">Kopiraj tekst</button></div>
+<p class="mut" id="pKont" style="margin:0"></p>
+<button type="button" class="cp" id="pZat" style="min-height:48px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:600 16px var(--f)">Zatvori</button></div></div>
+<div class="odlg" id="odlg" role="dialog" aria-modal="true" aria-label="Neslužbena ponuda"><div class="ob"><button type="button" class="gl" id="oPdf">Spremi kao PDF</button><button type="button" id="oSl">Zatraži službenu ponudu</button><button type="button" id="oZat">Zatvori</button></div><div class="pon" id="oDoc"></div></div>
+<div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dT"><div class="in"><h2 id="dT">Kako koristiti 3D prikaz</h2><ol>
+<li><b>Okretanje:</b> povucite jednim prstom po slici (na računalu: držite lijevu tipku miša i povucite). Spremište se okreće i možete ga pogledati sa svih strana.</li>
+<li><b>Približavanje:</b> raširite ili stisnite dva prsta na slici (na računalu: kotačić miša).</li>
+<li><b>Ako se „izgubite”:</b> pod „Pogled” pritisnite „3D”, „Sprijeda”, „Odozgo” ili „Lokacija” i slika se vraća u uredan položaj.</li>
+<li><b>Vrata:</b> gumbi na dnu slike otvaraju lijevo ili desno krilo; „Zatvori” ih zatvara.</li>
+<li><b>Cijeli zaslon:</b> gumb ⛶ u gornjem desnom kutu 3D-a prikaže ga preko cijelog zaslona, ✕ vraća natrag. Na mobitelu je dovoljno okrenuti ga položeno. Unutra „Pogled ▾” mijenja pogled. Na iPhoneu ostaje traka preglednika.</li><li><b>Prikaži / sakrij:</b> „Krov”, „Posude”, „Piloti” i „Susjedno 75A” uključuju se i isključuju pritiskom. Tamni gumb znači uključeno. „Piloti” pokazuje sidrenje u tlu (samo za ugradnju na asfalt).</li>
+<li><b>Ispuna:</b> prvo odaberite stranu („Sve plohe”, „Straga”, „Lijevi bok”…), zatim materijal (mreža, perforirani lim, lamele…). Slika i cijena odmah se mijenjaju.</li>
+<li><b>Teren:</b> „Ravno” ili „Kosina” — kako će spremište stajati.</li>
+<li><b>Cijena i ponuda:</b> cijena je u traci na dnu. „Otvori neslužbenu ponudu” (ispod cijene) prikazuje ponudu za odabrano, koju možete spremiti kao PDF. „Zatraži službenu ponudu” šalje nam e-mail; ostavite broj telefona i javit ćemo vam se u roku 2–3 radna dana. „Dijeli” šalje poveznicu na ovu varijantu.</li></ol>
+<p class="mut" style="margin:0">Ništa se ne može pokvariti — slobodno isprobajte.</p><button type="button" id="dOk">Razumijem</button></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const CFG={brend:'flash',izborIspune:true,cijena:false,autoFull:true ,s44:false  ,izvedba:{straga:'perfo',lijevo:'mreza',desno:'perfo',vrata:'mreza'},
+  umami:'17cf6bf3-9670-45c1-8e5b-26cfcf0ec355',umamiSrc:'https://cloud.umami.is/script.js',umamiJa:'65412c8a',
+  L:3150,D:1350,
+  nagib:2.5,nize:'L',teren:'ravno',
+  lok:{adresa:'F. Tuđmana 75',G:600,cesta:1000,cestaW:6000,zemlja:3500,staza:{z0:1500,w:1500},dvor:{w:1500,x:null},zgrada:{h:3000,od:null,w:4000,len:8000}  ,
+ padRub:200,pokos:400,L44:4400,D44:1400,asfalt:4000},
+  precka:{h:80,t:40,gVrh:1800},
+  lim:{t:'T18',h:18,korak:137.5,b:35},
+  rog:{b:30,h:50,n:5},podr:{b:50,h:30,n:6},
+  vrata:true,
+  ispVrh:1800,
+  stupW:80,stupD:40,kutD:80,
+  straga:[0,1535,3070],sprijeda:[0,3070],
+  Nh:100,Nd:60,
+  yStraga:2000,yNapr:2060,prepust:500,prepustStraga:150,
+  lijevoVan:0,krilo1Fiksno:true,preklop:40,zazor:30,dno:60,unutraD:1220,
+  donjaVod:false,
+  krilo:{z0:1380,t:40,gap:15,y0:30,ispH:1800,visece:true},
+  K:{w:1370,d:1070,h:1330},Kbok:{z:50},
+  KA:{w:580,d:740,h:1070},V:330};
+const PON={kupac:'LIND-GRAD d.o.o.\nUlica Božidara Adžije 19\n10000 Zagreb',oib:'81530401884',mjesto:'Krašić, Čunkova Draga',objekt:'F. Tuđmana 75',
+  nacin:'Avans 50 %, ostatak po montaži',vrijedi:30,javljanje:'2–3 radna dana',
+  opcija:'Opcija (ne ulazi u zbroj): sidrenje pilotima na asfaltu',
+  nesluzbena:'Neslužbena ponuda, izrađena automatski prema odabranim kriterijima. Detalji izvedbe moraju se dogovoriti prije službene ponude. Broj neslužbene ponude (NP) dodjeljuje Flash Metal.',
+  naslov:'PONUDA – NESLUŽBENA',potpis:'Flash metal – Čunko Karlo:',predmet:'Spremište za 2 kontejnera 1100 L, {gab}, visina oko 2,0 m — čelična konstrukcija zavarena u komadu, bojana; krov od trapeznog lima s prepustom 0,5 m nad ulazom; 2 viseća klizna krila (teleskop).',
+  firma:'FLASH METAL j.d.o.o.  |  Čunkova Draga 8A, 10455 Kostanjevac  |  OIB: 37925444801',banka:'IBAN: HR7524840081107537724 (Raiffeisen Bank)',
+  opisi:{'Kostur (po m² tlocrta)':'Čelična konstrukcija (kostur), po m² tlocrta','Brava s cilindrom (1 kom, u sredini spaja krila)':'Brava s cilindrom, 1 kom (u sredini spaja oba krila)'}};
+const CIJ={primjer:false  ,pdv:0.25,valuta:'€',
+  m2:{},
+  kom:{},
+  puna:{t:'Pojačani prednji stupovi 80×80 (zatvorena ispuna)',c:0,isp:['perfo','lamele','kose'],plohe:['straga','vrata']},
+  fiksno:[],
+  piloti:0,
+  napomena:p=>'Cijena je navedena pod uvjetom da su svi pripremni radovi terena odrađeni. Ako je izbetoniran temelj i omogući nam se ugradnja na tiple, nema nadoplate. Ako se ugrađuje na asfalt, za sidrenje idu piloti kao nadoplata: '+p+' bez PDV-a.'};
+const STAT={"meta": {"vb0": 25.0, "sk": 1.25, "s": 1.0, "qp": 0.566, "mjesto": "Jastrebarsko", "nv": 160, "prof": {"Srednji stražnji stup": "80×80×3", "Kutni stražnji stupovi": "80×80×3", "Prednji stupovi": "80×80×3", "Stražnja greda": "80×40×3", "Prednji nosač": "100×60×3", "Bočne grede": "40×80×3", "Donje prečke": "40×80×3", "Gornje prečke": "40×80×3", "Rogovi": "50×30×2", "Podrožnice": "50×30×2 položena"}, "podr": 0.07, "krov": {"lim": "T18 0,5", "raspon": 0.41, "eta": [0.14, 0.23], "sls": 0.21, "q_d": 1.57, "q_up": 1.14, "vijak": 0.13, "vijak_rub": 0.21, "R_vijak": 0.97, "eta_vijak": 0.22, "eta_up": 0.21, "progN": 0, "granN": 6.1, "progR": 2.0}}, "k": {"0000": {"stupN": "80×80×3", "vrh": [2.8, 2.9], "gran": 13.4, "eta": {"Prednji stupovi": 0.39, "Rogovi": 0.31, "Prednji nosač": 0.3, "Kutni stražnji stupovi": 0.2, "Bočne grede": 0.18, "Gornje prečke": 0.18, "Srednji stražnji stup": 0.17, "Donje prečke": 0.17, "Stražnja greda": 0.13}, "vlak": 3.7, "ok": true}, "0001": {"stupN": "80×80×3", "vrh": [5.2, 5.8], "gran": 13.4, "eta": {"Prednji stupovi": 0.51, "Kutni stražnji stupovi": 0.43, "Bočne grede": 0.4, "Rogovi": 0.4, "Prednji nosač": 0.38, "Gornje prečke": 0.36, "Srednji stražnji stup": 0.28, "Donje prečke": 0.19, "Stražnja greda": 0.17}, "vlak": 4.4, "ok": true}, "0010": {"stupN": "80×80×3", "vrh": [2.8, 3.8], "gran": 13.4, "eta": {"Prednji stupovi": 0.42, "Rogovi": 0.33, "Prednji nosač": 0.3, "Gornje prečke": 0.22, "Kutni stražnji stupovi": 0.22, "Donje prečke": 0.21, "Bočne grede": 0.2, "Srednji stražnji stup": 0.2, "Stražnja greda": 0.15}, "vlak": 3.8, "ok": true}, "0011": {"stupN": "80×80×3", "vrh": [5.2, 5.9], "gran": 13.4, "eta": {"Prednji stupovi": 0.53, "Kutni stražnji stupovi": 0.43, "Bočne grede": 0.41, "Rogovi": 0.4, "Prednji nosač": 0.38, "Gornje prečke": 0.36, "Srednji stražnji stup": 0.28, "Donje prečke": 0.2, "Stražnja greda": 0.18}, "vlak": 4.4, "ok": true}, "0100": {"stupN": "80×80×3", "vrh": [2.8, 3.8], "gran": 13.4, "eta": {"Prednji stupovi": 0.42, "Rogovi": 0.33, "Prednji nosač": 0.3, "Gornje prečke": 0.22, "Kutni stražnji stupovi": 0.22, "Donje prečke": 0.21, "Bočne grede": 0.2, "Srednji stražnji stup": 0.2, "Stražnja greda": 0.15}, "vlak": 3.8, "ok": true}, "0101": {"stupN": "80×80×3", "vrh": [5.2, 5.9], "gran": 13.4, "eta": {"Prednji stupovi": 0.53, "Kutni stražnji stupovi": 0.43, "Bočne grede": 0.41, "Rogovi": 0.4, "Prednji nosač": 0.38, "Gornje prečke": 0.36, "Srednji stražnji stup": 0.28, "Donje prečke": 0.2, "Stražnja greda": 0.18}, "vlak": 4.4, "ok": true}, "0110": {"stupN": "80×80×3", "vrh": [2.6, 2.6], "gran": 13.4, "eta": {"Prednji stupovi": 0.4, "Rogovi": 0.31, "Prednji nosač": 0.3, "Gornje prečke": 0.2, "Bočne grede": 0.19, "Kutni stražnji stupovi": 0.18, "Srednji stražnji stup": 0.17, "Donje prečke": 0.15, "Stražnja greda": 0.13}, "vlak": 3.6, "ok": true}, "0111": {"stupN": "80×80×3", "vrh": [4.6, 4.6], "gran": 13.4, "eta": {"Prednji stupovi": 0.48, "Rogovi": 0.36, "Prednji nosač": 0.36, "Bočne grede": 0.34, "Kutni stražnji stupovi": 0.31, "Gornje prečke": 0.29, "Srednji stražnji stup": 0.25, "Donje prečke": 0.19, "Stražnja greda": 0.14}, "vlak": 3.8, "ok": true}, "1000": {"stupN": "80×80×3", "vrh": [5.1, 5.1], "gran": 13.4, "eta": {"Prednji stupovi": 0.42, "Rogovi": 0.33, "Prednji nosač": 0.32, "Bočne grede": 0.31, "Srednji stražnji stup": 0.29, "Kutni stražnji stupovi": 0.27, "Gornje prečke": 0.26, "Donje prečke": 0.19, "Stražnja greda": 0.14}, "vlak": 4.3, "ok": true}, "1001": {"stupN": "80×80×3", "vrh": [3.7, 4.4], "gran": 13.4, "eta": {"Prednji stupovi": 0.47, "Rogovi": 0.37, "Prednji nosač": 0.36, "Kutni stražnji stupovi": 0.32, "Bočne grede": 0.31, "Gornje prečke": 0.27, "Srednji stražnji stup": 0.23, "Donje prečke": 0.17, "Stražnja greda": 0.15}, "vlak": 3.6, "ok": true}, "1010": {"stupN": "80×80×3", "vrh": [5.1, 5.1], "gran": 13.4, "eta": {"Prednji stupovi": 0.43, "Rogovi": 0.35, "Prednji nosač": 0.32, "Bočne grede": 0.31, "Gornje prečke": 0.3, "Srednji stražnji stup": 0.29, "Kutni stražnji stupovi": 0.29, "Donje prečke": 0.23, "Stražnja greda": 0.17}, "vlak": 4.5, "ok": true}, "1011": {"stupN": "80×80×3", "vrh": [3.7, 4.5], "gran": 13.4, "eta": {"Prednji stupovi": 0.47, "Rogovi": 0.37, "Prednji nosač": 0.36, "Kutni stražnji stupovi": 0.33, "Bočne grede": 0.31, "Gornje prečke": 0.27, "Srednji stražnji stup": 0.23, "Donje prečke": 0.23, "Stražnja greda": 0.18}, "vlak": 3.7, "ok": true}, "1100": {"stupN": "80×80×3", "vrh": [5.1, 5.1], "gran": 13.4, "eta": {"Prednji stupovi": 0.43, "Rogovi": 0.35, "Prednji nosač": 0.32, "Bočne grede": 0.31, "Gornje prečke": 0.3, "Srednji stražnji stup": 0.29, "Kutni stražnji stupovi": 0.29, "Donje prečke": 0.23, "Stražnja greda": 0.17}, "vlak": 4.5, "ok": true}, "1101": {"stupN": "80×80×3", "vrh": [3.7, 4.5], "gran": 13.4, "eta": {"Prednji stupovi": 0.47, "Rogovi": 0.37, "Prednji nosač": 0.36, "Kutni stražnji stupovi": 0.33, "Bočne grede": 0.31, "Gornje prečke": 0.27, "Srednji stražnji stup": 0.23, "Donje prečke": 0.23, "Stražnja greda": 0.18}, "vlak": 3.7, "ok": true}, "1110": {"stupN": "80×80×3", "vrh": [4.1, 4.1], "gran": 13.4, "eta": {"Prednji stupovi": 0.41, "Rogovi": 0.33, "Prednji nosač": 0.32, "Gornje prečke": 0.28, "Kutni stražnji stupovi": 0.27, "Bočne grede": 0.25, "Srednji stražnji stup": 0.23, "Donje prečke": 0.16, "Stražnja greda": 0.12}, "vlak": 4.3, "ok": true}, "1111": {"stupN": "80×80×3", "vrh": [3.6, 3.6], "gran": 13.4, "eta": {"Prednji stupovi": 0.46, "Prednji nosač": 0.35, "Rogovi": 0.34, "Kutni stražnji stupovi": 0.27, "Bočne grede": 0.26, "Gornje prečke": 0.25, "Srednji stražnji stup": 0.21, "Donje prečke": 0.18, "Stražnja greda": 0.15}, "vlak": 3.7, "ok": true}}};
+const TEM={"S": {"N": 4.43, "M": 2.36, "H": 3.4, "T": 8.61}, "V1": {"MjRd": 4.3, "eta": 0.55, "ok": true}, "V2": {"ploca": [200, 200, 10], "raz": 150, "d": 10, "As": 58.0, "fuk": 500.0, "gMs": 1.5, "hef": 90, "NRk_p": 21.2, "gMp": 1.5, "NRd_s": 19.3, "fck": 20.0, "k1": 7.7, "gMc": 1.5, "h_min": 120, "c_min": 135, "fy": 235.0, "a_var": 4, "T": 8.98, "V": 0.85, "etaA": 0.73, "etaB": 0.64, "etaS": 0.46, "etaV": 0.06, "inter": 0.63, "t_pot": 6.8, "etaPl": 0.47, "razlika": 12.5, "ok": true}};
+const ISP={
+  nema:{t:'Bez ispune',o:'Samo kostur: stupovi, nosači i grede, bez ispune. Polazna točka — ispunu biraš za svaku plohu posebno.'},
+  mreza:{t:'Mreža',o:'Mreža u okvirima: prozračno, svijetlo, sadržaj se vidi.'},
+  perfo:{t:'Perforirani lim',o:'Lim s rupicama u okvirima: zatvoreniji izgled, a zrak i dalje struji pa nema neugodnih mirisa.'},
+  lamele:{t:'Lamele',o:'Vodoravne čelične lamele s razmakom: zaklanjaju pogled, a spremište se prozračuje.'},
+ kose:{t:'Kose lamele',o:'Nagnute lamele (žaluzine): pogled ne prolazi ni izbliza, kiša ne ulazi, a zrak struji.'}};
+const PLOHE={sve:'Sve plohe',straga:'Straga',lijevo:'Lijevi bok',desno:'Desni bok',vrata:'Vrata'};
+const R0=CFG.stupW,R1=CFG.L-CFG.stupW;
+function wings(n){const o=CFG.preklop,a=R0-o,b=R1+o,p=Math.ceil((b-a+(n-1)*o)/n),zat=[...Array(n)].map((_,i)=>a+i*(p-o));
+  return {p,n,pos:{zat,L:zat.map(()=>b-p),D:zat.map(()=>CFG.krilo1Fiksno?a:-CFG.lijevoVan)}}}
+const Kc=(x)=>({t:'K',x,z:CFG.dno,w:CFG.K.w,d:CFG.K.d}),KAc=(x,rot)=>rot?{t:'KA',x,z:CFG.dno,w:CFG.KA.d,d:CFG.KA.w,rot:1}:{t:'KA',x,z:CFG.dno,w:CFG.KA.w,d:CFG.KA.d};
+const Vc=(cx,cz)=>({t:'V',x:cx-CFG.V/2,z:cz-CFG.V/2,w:CFG.V,d:CFG.V});
+const kbR=R1-CFG.zazor-CFG.K.d,kR=R1-CFG.zazor-CFG.K.w,kL=kR-CFG.zazor-CFG.K.w;
+const k1_2=Math.min(kL,wings(2).pos.L[0]-CFG.zazor-CFG.K.w);
+const kb2=kbR-CFG.zazor-CFG.K.d,kb3=kb2-CFG.zazor-CFG.K.d;
+const LAYB=[
+  {t:'2 kontejnera bočno: skroz lijevo i skroz desno',o:'Jedan kontejner bočno skroz lijevo, jedan skroz desno; sredina slobodna.',items:[KBc(R0+CFG.zazor),KBc(kbR)]},
+  {t:'+1 kanta: lijevo i desno kontejner, kanta u sredini',o:'Kontejneri bočno skroz lijevo i skroz desno, kanta 240 L u sredini straga.',items:[KBc(R0+CFG.zazor),KBc(kbR),KAc(1710)]},
+  {t:'+2 kante: lijevo i desno kontejner, 2 kante u sredini',o:'Kontejneri bočno skroz lijevo i skroz desno, dvije kante 240 L straga u sredini. Sve četiri posude izlaze ravno van.',items:[KBc(R0+CFG.zazor),KBc(kbR),KAc(1290),KAc(2130)]},
+  {t:'+2 kante okrenute jedna prema drugoj',o:'Kontejneri bočno skroz lijevo i skroz desno, dvije kante 240 L straga okrenute jedna prema drugoj (ručke uz kontejnere). Ispred kanti više mjesta.',items:[KBc(R0+CFG.zazor),KBc(kbR),KAc(1210,1),KAc(2050,1)]}];
+const GAB=()=>[CFG.L,CFG.D].map(v=>(v/1000).toLocaleString('hr-HR',{maximumFractionDigits:2})).join(' × ')+' m';
+const LAYN=[{t:'2 kontejnera licem prema vratima',o:'Lijevi kontejner izlazi kad se otvori lijevo, desni kad se otvori desno. Poklopac se otvara prema natrag, ubacuje se ravno sprijeda.',items:[Kc(k1_2),Kc(kR)]}];
+const LAY={3:LAYN,2:LAYN};
+function KBc(x){return {t:'K',x,z:CFG.Kbok.z,w:CFG.K.d,d:CFG.K.w}}
+const $=id=>document.getElementById(id);
+const C={steel:0x3b4144,mesh:0x9aa3a8,lim:0x4a5054,perf:0x5b6266,brava:0xc9a227,whl:0x15181a,ground:0x6d7275,rub:0xb7b4ac,kont:0x7c8488,kanta:0x3e7a4b,vreca:0x2b2f31,rail:0x9aa3a8};
+const S0=Math.tan(CFG.nagib*Math.PI/180);let s=CFG.teren==='ravno'?0:S0,TMODE=CFG.teren;const gy=x=>CFG.nize==='L'?-s*(CFG.L-x):-s*x,sg=CFG.nize==='L'?-1:1,L=CFG.L,D=CFG.D;
+let cfg={isp:{...CFG.izvedba},pl:'sve',n:2,r:0},want='zat',showRoof=true,showKo=true,showPil=false,last=0;
+const PIL={d:60.3,dub:900,spir:120,gl:[100,170,15],m16:65,boja:0xb8bec4};
+const stage=$('stage');let renderer,scene,cam,root,leaves=[],tgt=new THREE.Vector3(),sph={r:7000,th:-0.55,ph:1.08},perfTex=null;
+function init(){
+  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true})}catch(e){stage.insertAdjacentHTML('afterbegin','<div class="err">3D se ne može prikazati na ovom uređaju.</div>');return}
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));stage.prepend(renderer.domElement);
+  scene=new THREE.Scene();cam=new THREE.PerspectiveCamera(38,1,5,60000);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x5d6870,.95));const dl=new THREE.DirectionalLight(0xffffff,.6);dl.position.set(-2,4,3);scene.add(dl);
+  new ResizeObserver(resize).observe(stage);resize();controls();build();setView('lok');requestAnimationFrame(loop)}
+function resize(){if(!renderer)return;const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.fov=w<500?52:38;cam.updateProjectionMatrix();fit()}
+function fit(){if(!cam)return;const half=(sph.half||L+600)/2,f=Math.tan(cam.fov*Math.PI/360)*cam.aspect;sph.r=Math.max(sph.r0||0,half/f*1.15)}
+function quad(vs){const pos=[];for(let f=0;f<vs.length/4;f++){const q=vs.slice(f*4,f*4+4);[[0,1,2],[0,2,3]].forEach(t=>t.forEach(i=>pos.push(q[i][0],q[i][1],q[i][2])))}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();return g}
+const FACES=[[0,1,2,3],[5,4,7,6],[4,0,3,7],[1,5,6,2],[3,2,6,7],[4,5,1,0]];
+const box8=P=>{const o=[];FACES.forEach(f=>f.forEach(i=>o.push(P[i])));return quad(o)};
+function sbox(x0,x1,y0,y1,z0,z1,flat){const a=flat?0:gy(x0),b=flat?0:gy(x1);return box8([[x0,y0+a,z0],[x1,y0+b,z0],[x1,y1+b,z0],[x0,y1+a,z0],[x0,y0+a,z1],[x1,y0+b,z1],[x1,y1+b,z1],[x0,y1+a,z1]])}
+function vbox(x0,x1,y0,y1,z0,z1){const g=gy((x0+x1)/2);return box8([[x0,y0+g,z0],[x1,y0+g,z0],[x1,y1+g,z0],[x0,y1+g,z0],[x0,y0+g,z1],[x1,y0+g,z1],[x1,y1+g,z1],[x0,y1+g,z1]])}
+function zbox(x0,x1,z0,z1,ya0,ya1,yb0,yb1){const g=x=>gy(x);return box8([[x0,ya0+g(x0),z0],[x1,ya0+g(x1),z0],[x1,ya1+g(x1),z0],[x0,ya1+g(x0),z0],[x0,yb0+g(x0),z1],[x1,yb0+g(x1),z1],[x1,yb1+g(x1),z1],[x0,yb1+g(x0),z1]])}
+const mat=(c,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,side:THREE.DoubleSide},o||{}));
+const edge=g=>new THREE.LineSegments(new THREE.EdgesGeometry(g,20),new THREE.LineBasicMaterial({color:0,transparent:true,opacity:.22}));
+function addB(par,g,c,o,e){const m=new THREE.Mesh(g,mat(c,o));par.add(m);if(e!==false)par.add(edge(g));return m}
+function lines(par,p){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));par.add(new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:C.mesh,transparent:true,opacity:.65})))}
+function perf(){if(perfTex)return perfTex;const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+  g.fillStyle='#8d959a';g.fillRect(0,0,64,64);g.fillStyle='#262b2e';[[16,16],[48,48]].forEach(([x,y])=>{g.beginPath();g.arc(x,y,10,0,7);g.fill()});
+  perfTex=new THREE.CanvasTexture(c);perfTex.wrapS=perfTex.wrapT=THREE.RepeatWrapping;return perfTex}
+function infillX(par,x0,x1,y0,y1,z0,z1,t,col,isp){const zc=(z0+z1)/2;if(isp==='nema'&&t<40)return;
+  [[x0,x0+t,y0,y1],[x1-t,x1,y0,y1],[x0+t,x1-t,y0,y0+t],[x0+t,x1-t,y1-t,y1]].forEach(([a,b,c,d])=>addB(par,sbox(a,b,c,d,z0,z1),col||C.steel));
+  const xa=x0+t,xb=x1-t,ya=y0+t,yb=y1-t;if(isp==='nema')return;
+  if(isp==='mreza'){const p=[];for(let x=xa+50;x<xb;x+=50)p.push(x,gy(x)+ya,zc,x,gy(x)+yb,zc);for(let y=ya+50;y<yb;y+=50)p.push(xa,gy(xa)+y,zc,xb,gy(xb)+y,zc);lines(par,p)}
+  else if(isp==='perfo'){const t2=perf().clone();t2.needsUpdate=true;t2.repeat.set((xb-xa)/40,(yb-ya)/40);const geo=sbox(xa,xb,ya,yb,zc-1,zc+1);geo.setAttribute('uv',uvAx(geo,'X'));addB(par,geo,0xffffff,{map:t2},false)}
+  else if(isp==='kose'){for(let y=ya+5;y+80<=yb;y+=75){const P=(x,yy,z)=>[x,yy+gy(x),z];addB(par,box8([P(xa,y,zc+22),P(xb,y,zc+22),P(xb,y+80,zc-22),P(xa,y+80,zc-22),P(xa,y,zc+19),P(xb,y,zc+19),P(xb,y+80,zc-25),P(xa,y+80,zc-25)]),C.lim)}}
+else{for(let y=ya+10;y+70<=yb;y+=100)addB(par,sbox(xa,xb,y,y+70,zc-10,zc+10),C.lim)}}
+function infillZ(par,x0,x1,z0,z1,y0,ya,yb,t,isp,out){if(isp==='nema')return;const k=(yb-ya)/(z1-z0),top=z=>ya+k*(z-z0),xc=(x0+x1)/2,g=gy(xc);
+  addB(par,zbox(x0,x1,z0,z0+t,y0,top(z0),y0,top(z0+t)),C.steel);addB(par,zbox(x0,x1,z1-t,z1,y0,top(z1-t),y0,top(z1)),C.steel);
+  addB(par,zbox(x0,x1,z0+t,z1-t,y0,y0+t,y0,y0+t),C.steel);addB(par,zbox(x0,x1,z0+t,z1-t,top(z0+t)-t,top(z0+t),top(z1-t)-t,top(z1-t)),C.steel);
+  const za=z0+t,zb=z1-t,y1a=top(za)-t,y1b=top(zb)-t,ya2=y0+t;
+  if(isp==='mreza'){const p=[];for(let z=za+50;z<zb;z+=50)p.push(xc,g+ya2,z,xc,g+top(z)-t,z);for(let y=ya2+50;y<Math.min(y1a,y1b);y+=50)p.push(xc,g+y,za,xc,g+y,zb);lines(par,p)}
+  else if(isp==='perfo'){const t2=perf().clone();t2.needsUpdate=true;t2.repeat.set((zb-za)/40,(Math.min(y1a,y1b)-ya2)/40);
+    const geo=zbox(xc-1,xc+1,za,zb,ya2,y1a,ya2,y1b);geo.setAttribute('uv',uvAx(geo,'Z'));addB(par,geo,0xffffff,{map:t2},false)}
+  else if(isp==='kose'){const o=out||1;for(let y=ya2+5;y+80<=Math.min(y1a,y1b);y+=75){const P=(x,yy,z)=>[x,yy+gy(x),z];addB(par,box8([P(xc+22*o,y,za),P(xc+22*o,y,zb),P(xc-22*o,y+80,zb),P(xc-22*o,y+80,za),P(xc+19*o,y,za),P(xc+19*o,y,zb),P(xc-25*o,y+80,zb),P(xc-25*o,y+80,za)]),C.lim)}}
+else{for(let y=ya2+10;y+70<=Math.min(y1a,y1b);y+=100)addB(par,zbox(xc-10,xc+10,za,zb,y,y+70,y,y+70),C.lim)}}
+function uvAx(geo,ax){const p=geo.attributes.position,uv=[],get=i=>ax==='X'?p.getX(i):p.getZ(i);let a0=1e9,a1=-1e9,y0=1e9,y1=-1e9;for(let i=0;i<p.count;i++){a0=Math.min(a0,get(i));a1=Math.max(a1,get(i));y0=Math.min(y0,p.getY(i));y1=Math.max(y1,p.getY(i))}
+  for(let i=0;i<p.count;i++)uv.push((get(i)-a0)/(a1-a0),(p.getY(i)-y0)/(y1-y0));return new THREE.Float32BufferAttribute(uv,2)}
+function build(){
+  if(!scene)return;if(root)scene.remove(root);root=new THREE.Group();scene.add(root);
+  const W=wings(cfg.n),lay=LAY[cfg.n][Math.min(cfg.r,LAY[cfg.n].length-1)],KR=CFG.krilo,zmax=KR.z0+W.n*(KR.t+KR.gap);
+  site();root.position.y=TMODE==='ravno'?PADY:0;
+  const yS=CFG.yStraga,yN=CFG.yNapr,top=z=>yS+(yN-yS)*z/D;
+  CFG.straga.forEach((x,i)=>addB(root,vbox(x,x+CFG.stupW,0,yS,0,CFG.kutD),C.steel));
+  CFG.sprijeda.forEach(x=>addB(root,vbox(x,x+CFG.stupW,0,yN-CFG.Nh,D-CFG.kutD,D),C.steel));
+  {const pg=new THREE.Group();pg.name='piloti';pg.visible=showPil;root.add(pg);
+   const st=[...CFG.straga.map(x=>[x+CFG.stupW/2,CFG.kutD/2]),...CFG.sprijeda.map(x=>[x+CFG.stupW/2,D-CFG.kutD/2])];
+   st.forEach(([x,z])=>{const g0=gy(x),cy=(r,h,y,c)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20),mat(c));m.position.set(x,g0+y,z);pg.add(m)};
+    cy(PIL.d/2,PIL.dub,-PIL.gl[2]-PIL.dub/2,PIL.boja);cy(PIL.spir/2,5,-PIL.gl[2]-PIL.dub+120,PIL.boja);
+    addB(pg,vbox(x-PIL.gl[0]/2,x+PIL.gl[0]/2,-PIL.gl[2],0,z-PIL.gl[1]/2,z+PIL.gl[1]/2),C.steel);
+    [-1,1].forEach(k=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(8,8,60,10),mat(0x9aa3a8));m.position.set(x,g0+30,z+k*PIL.m16);pg.add(m)})});}
+  if(showPil&&siteG){const s44=siteG.getObjectByName('s44'),u44=new Set();if(s44)s44.traverse(o=>u44.add(o));siteG.traverse(o=>{if(o.isMesh&&!u44.has(o)){o.material.transparent=true;o.material.opacity=Math.min(o.material.opacity??1,.3);o.material.depthWrite=false}})}
+  addB(root,sbox(0,L,yN-CFG.Nh,yN,D-CFG.Nd,D),C.steel);
+  addB(root,sbox(0,L,yS-80,yS,0,CFG.stupD),C.steel);
+  [0,L-40].forEach(x=>addB(root,zbox(x,x+40,CFG.kutD,D-CFG.Nd,top(CFG.kutD)-80,top(CFG.kutD),top(D-CFG.Nd)-80,top(D-CFG.Nd)),C.steel));
+  addB(root,sbox(CFG.stupW,L-CFG.stupW,0,80,0,CFG.stupD),C.steel);
+  [0,L-40].forEach(x=>addB(root,zbox(x,x+40,CFG.kutD,D-CFG.kutD,0,80,0,80),C.steel));
+  {const P=CFG.precka,y1=P.gVrh,y0=y1-P.h;addB(root,sbox(CFG.stupW,L-CFG.stupW,y0,y1,0,P.t),C.steel);
+   [0,L-P.t].forEach(x=>addB(root,zbox(x,x+P.t,CFG.kutD,D-CFG.kutD,y0,y1,y0,y1),C.steel))}
+  const roof=new THREE.Group();roof.name='krov';roof.visible=showRoof;root.add(roof);
+  const zr1=D+CFG.prepust,yr=z=>top(z)+0;
+  const LIMO={},LM=CFG.lim,RG=CFG.rog,PD=CFG.podr,h1=RG.h,h2=RG.h+PD.h;
+  for(let i=0;i<RG.n;i++){const x=Math.min(L-RG.b,i*(L-RG.b)/(RG.n-1));addB(roof,zbox(x,x+RG.b,-20,zr1,yr(-20),yr(-20)+h1,yr(zr1),yr(zr1)+h1),C.steel)}
+  for(let j=0;j<PD.n;j++){const z=-20+j*(zr1-PD.b+20)/(PD.n-1);addB(roof,zbox(-20,L+20,z,z+PD.b,yr(z)+h1,yr(z)+h2,yr(z+PD.b)+h1,yr(z+PD.b)+h2),C.steel)}
+  if(CFG.lim){addB(roof,zbox(-40,L+40,-40,zr1+20,yr(-40)+h2+2,yr(-40)+h2+6,yr(zr1+20)+h2+2,yr(zr1+20)+h2+6),C.lim,LIMO,false);
+  for(let x=-40;x<L+40;x+=LM.korak)addB(roof,zbox(x,Math.min(x+LM.b,L+40),-40,zr1+20,yr(-40)+h2+6,yr(-40)+h2+6+LM.h,yr(zr1+20)+h2+6,yr(zr1+20)+h2+6+LM.h),C.lim,LIMO,false);}
+  for(let i=0;i<CFG.straga.length-1;i++){const xa=CFG.straga[i]+CFG.stupW,xb=CFG.straga[i+1];infillX(root,xa,xb,80,CFG.ispVrh-CFG.precka.h,-30,0,30,null,cfg.isp.straga)}
+  infillZ(root,-30,0,CFG.kutD,D-CFG.kutD,80,CFG.ispVrh-CFG.precka.h,CFG.ispVrh-CFG.precka.h,30,cfg.isp.lijevo,-1);
+  infillZ(root,L,L+30,CFG.kutD,D-CFG.kutD,80,CFG.ispVrh-CFG.precka.h,CFG.ispVrh-CFG.precka.h,30,cfg.isp.desno,1);
+  leaves=[];if(CFG.vrata){
+  const xo=-CFG.lijevoVan;if(CFG.donjaVod){addB(root,sbox(xo,L,0,40,D+10,zmax+10),C.steel);
+  {const len=Math.hypot(L-xo,s*(L-xo)),r=new THREE.Mesh(new THREE.CylinderGeometry(10,10,len,14),mat(C.rail));r.rotation.z=Math.PI/2-sg*Math.atan(s);r.position.set((L+xo)/2,gy((L+xo)/2)+50,(KR.z0+zmax)/2);root.add(r)}}
+  addB(root,sbox(xo,L,yN-CFG.Nh-30,yN-CFG.Nh,D,zmax+10),C.steel);
+  leaves=W.pos.zat.map((x0,i)=>{const g=new THREE.Group();root.add(g);const z=KR.z0+i*(KR.t+KR.gap);
+    const ky1=CFG.yNapr-CFG.Nh-30,ki1=KR.y0+40+KR.ispH+40;
+    infillX(g,0,W.p,KR.y0,ki1,z,z+KR.t,40,null,cfg.isp.vrata);
+    if(ky1>ki1){addB(g,sbox(0,40,ki1,ky1,z,z+KR.t),C.steel);addB(g,sbox(W.p-40,W.p,ki1,ky1,z,z+KR.t),C.steel);addB(g,sbox(40,W.p-40,ky1-40,ky1,z,z+KR.t),C.steel)}
+if(i===W.n-1)addB(g,sbox(55,95,1000,1140,z+KR.t,z+KR.t+25),C.brava);
+    [90,W.p-90].forEach(x=>{const r=KR.visece?13:40,w=new THREE.Mesh(new THREE.CylinderGeometry(r,r,24,24),mat(C.whl));w.rotation.x=Math.PI/2;w.position.set(x,gy(x)+(KR.visece?CFG.yNapr-CFG.Nh-15:50),(KR.z0+zmax)/2);g.add(w)});
+    return {g,pos:W.pos,x:(cur[i]!==undefined?cur[i]:x0),i}});
+  leaves.forEach(l=>l.g.position.set(l.x,gy(l.x)-gy(0),0));}
+  const kg=new THREE.Group();kg.name='kont';kg.visible=showKo;root.add(kg);
+  const put=(cx,cz)=>{const o=new THREE.Group();o.position.set(cx,gy(cx)-20,cz);o.rotation.z=-sg*Math.atan(s);kg.add(o);return o};
+  const cyl=(g,r,len,x,y,z,c,rx)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,18),mat(c));if(rx)m.rotation.x=Math.PI/2;else m.rotation.z=Math.PI/2;m.position.set(x,y,z);g.add(m)};
+  const tb=(x0,x1,y0,y1,z0,z1,f)=>box8([[x0+f,y0,z0+f],[x1-f,y0,z0+f],[x1,y1,z0],[x0,y1,z0],[x0+f,y0,z1-f],[x1-f,y0,z1-f],[x1,y1,z1],[x0,y1,z1]]);
+  lay.items.forEach(o=>{const g=put(o.x+o.w/2,o.z+o.d/2),hw=o.w/2,hd=o.d/2;
+    if(o.t==='K'){const H=CFG.K.h;addB(g,tb(-hw+20,hw-20,150,H-70,-hd+40,hd-60,45),C.kont);addB(g,tb(-hw,hw,H-70,H,-hd+20,hd-40,0),C.kont);
+      [[-hw+120,-hd+140],[hw-120,-hd+140],[-hw+120,hd-160],[hw-120,hd-160]].forEach(([x,z])=>cyl(g,75,40,x,75,z,C.whl));cyl(g,14,o.w-200,0,H-260,hd-30,C.rail)}
+    else if(o.t==='KA'){const H=CFG.KA.h;addB(g,tb(-hw+15,hw-15,0,H-75,-hd+15,hd-15,30),C.kanta);addB(g,tb(-hw,hw,H-75,H-40,-hd,hd,0),C.kanta)}
+    else{const m=new THREE.Mesh(new THREE.CylinderGeometry(160,150,750,18),mat(C.vreca,{transparent:true,opacity:.75}));m.position.y=375;g.add(m)}});
+}
+
+const LK=CFG.lok,TER=x=>-S0*(L-x),PADY=TER(L/2);
+const PAD={x0:-LK.padRub,x1:L+LK.padRub,z0:-150,z1:LK.staza.z0+LK.staza.w+100};
+function H(x,z){const t=TER(x);if(TMODE!=='ravno')return t;const dx=Math.max(PAD.x0-x,0,x-PAD.x1),dz=Math.max(PAD.z0-z,0,z-PAD.z1),d=Math.max(dx,dz);
+  return d<=0?PADY:PADY+(t-PADY)*Math.min(d/LK.pokos,1)}
+function grid(par,x0,x1,z0,z1,col,off,st){st=st||150;const nx=Math.max(1,Math.ceil((x1-x0)/st)),nz=Math.max(1,Math.ceil((z1-z0)/st)),p=[];
+  const v=(i,j)=>{const x=x0+(x1-x0)*i/nx,z=z0+(z1-z0)*j/nz;return [x,H(x,z)+off,z]};
+  for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const a=v(i,j),b=v(i+1,j),c=v(i+1,j+1),d=v(i,j+1);p.push(...a,...c,...b,...a,...d,...c)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.computeVertexNormals();
+  par.add(new THREE.Mesh(g,mat(col,{polygonOffset:true,polygonOffsetFactor:-off/5,polygonOffsetUnits:-off/5})))}
+function tb(par,x0,x1,y0,y1,z0,z1,col,e){const a=TER(x0),b=TER(x1);return addB(par,box8([[x0,y0+a,z0],[x1,y0+b,z0],[x1,y1+b,z0],[x0,y1+a,z0],[x0,y0+a,z1],[x1,y0+b,z1],[x1,y1+b,z1],[x0,y1+a,z1]]),col,{},e)}
+function tv(par,x0,x1,y0,y1,z0,z1,col){const g=TER((x0+x1)/2);return addB(par,box8([[x0,y0+g,z0],[x1,y0+g,z0],[x1,y1+g,z0],[x0,y1+g,z0],[x0,y0+g,z1],[x1,y0+g,z1],[x1,y1+g,z1],[x0,y1+g,z1]]),col)}
+function label(par,txt,x,y,z){const c=document.createElement('canvas');c.width=640;c.height=120;const g=c.getContext('2d');g.fillStyle='rgba(255,255,255,.92)';g.fillRect(0,0,640,120);g.fillStyle='#1a1f22';g.font='600 54px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,320,62);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));sp.scale.set(2100,394,1);sp.position.set(x,y,z);sp.renderOrder=9;sp.name='lbl';sp.visible=SHOWLBL;par.add(sp)}
+let SHOWLBL=true;
+let siteG=null,show44=CFG.s44;
+function site(){if(siteG)scene.remove(siteG);siteG=new THREE.Group();scene.add(siteG);const g=siteG,G=LK.G,zf44=-G-LK.D44,xc=-LK.cesta;
+  grid(g,xc,L+8500,-G-LK.D44-LK.asfalt-1500,LK.zemlja+D+10000,0x8c937a,0,250);
+  grid(g,xc,L+1200,D,D+LK.zemlja,0x7b6650,8);
+  grid(g,xc,L+300,LK.staza.z0,LK.staza.z0+LK.staza.w,0x8f8a80,16,100);
+  {const W=LK.dvor.w,xm=LK.dvor.x??L/2,z0=LK.staza.z0+LK.staza.w,z1=D+LK.zemlja;
+   grid(g,xm-W/2,xm+W/2,z0-20,z1+600,0x8f8a80,17,100);for(let z=z0+500;z<z1+600;z+=500)lines(g,[xm-W/2,H(xm-W/2,z)+19,z,xm+W/2,H(xm+W/2,z)+19,z]);
+   const Zg=LK.zgrada,zx=Zg.od!=null?xc+Zg.od:L+1200;tb(g,zx,zx+Zg.w,0,Zg.h,z1,z1+Zg.len,0xc4beb1);label(g,LK.adresa,zx+Zg.w/2,TER(zx)+Zg.h+600,z1+Zg.len/4);
+   }
+  for(let x=xc+500;x<L+300;x+=500){const p=[x,H(x,LK.staza.z0)+18,LK.staza.z0,x,H(x,LK.staza.z0+LK.staza.w)+18,LK.staza.z0+LK.staza.w];lines(g,p)}
+  if(TMODE==='ravno')grid(g,PAD.x0,PAD.x1,PAD.z0,D+60,0xa9a59b,12,100);
+  grid(g,xc,LK.L44+800,zf44-LK.asfalt,-G+150,0x5d6266,10);
+  grid(g,xc-LK.cestaW,xc,-G-LK.D44-LK.asfalt-1500,LK.zemlja+D+10000,0x45494c,22,250);
+  tb(g,xc-150,xc,0,120,-G-LK.D44-LK.asfalt-1500,LK.zemlja+D+10000,C.rub);
+  for(let z=-G-LK.D44-LK.asfalt-1200;z<LK.zemlja+D+3600;z+=3000)tb(g,xc-LK.cestaW/2-60,xc-LK.cestaW/2+60,2,26,z,z+1500,0xeeeeee,false);
+  {const g44=new THREE.Group();g44.visible=show44;g44.name='s44';g.add(g44);spz4400(g44,G);label(g44,'F. Tuđmana 75A',LK.L44/2,TER(LK.L44/2)+3000,-G-700)}
+  }
+function spz4400(par,G){const L4=LK.L44,zb=-G,zf=-G-LK.D44,top=z=>2000+90*(zb-z)/LK.D44;
+  [0,2160,4320].forEach(x=>tv(par,x,x+80,0,2000,zb-40,zb,C.steel));[0,2920,4320].forEach(x=>tv(par,x,x+80,0,2090,zf,zf+40,C.steel));
+  tb(par,0,L4,1920,2000,zb-40,zb,C.steel);tb(par,0,L4,2010,2090,zf,zf+40,C.steel);tb(par,80,L4-80,0,80,zb-40,zb,C.steel);
+  [0,L4-40].forEach(x=>{const a=TER(x),b=TER(x+40);addB(par,box8([[x,1920+a,zb],[x+40,1920+b,zb],[x+40,2000+b,zb],[x,2000+a,zb],[x,2010+a,zf],[x+40,2010+b,zf],[x+40,2090+b,zf],[x,2090+a,zf]]),C.steel)});
+  const mx=(x0,x1,y0,y1,z)=>{const p=[];for(let x=x0+50;x<x1;x+=50)p.push(x,y0+TER(x),z,x,y1+TER(x),z);for(let y=y0+50;y<y1;y+=50)p.push(x0,y+TER(x0),z,x1,y+TER(x1),z);lines(par,p)};
+  mx(80,L4-80,80,1900,zb+5);[0,L4].forEach(x=>{const p=[],t=TER(x);for(let z=zf+60;z<zb-40;z+=50)p.push(x,80+t,z,x,top(z)-100+t,z);for(let y=130;y<1900;y+=50)p.push(x,y+t,zf+60,x,y+t,zb-40);lines(par,p)});
+  const kz=zf-60;[[2960,L4+40],[1440,2960+40],[-40,1520]].forEach(([a,b],i)=>{const z=kz-i*55;tb(par,a,a+40,60,1990,z-40,z,0x2d5d62);tb(par,b-40,b,60,1990,z-40,z,0x2d5d62);tb(par,a,b,60,100,z-40,z,0x2d5d62);tb(par,a,b,1950,1990,z-40,z,0x2d5d62);mx(a+40,b-40,100,1950,z-20)});
+  tb(par,-40,L4+40,1995,2010,kz-170,zf,C.steel);
+  for(let x=0;x<=L4;x+=L4/4){const a=TER(x);addB(par,box8([[x-15,2000+a,zb],[x+15,2000+a,zb],[x+15,2050+a,zb],[x-15,2050+a,zb],[x-15,2090+a+22,zf-500],[x+15,2090+a+22,zf-500],[x+15,2140+a+22,zf-500],[x-15,2140+a+22,zf-500]]),C.steel)}
+  {const a=TER(-40),b=TER(L4+40);addB(par,box8([[-40,2055+a,zb+40],[L4+40,2055+b,zb+40],[L4+40,2085+b,zb+40],[-40,2085+a,zb+40],[-40,2165+a,zf-540],[L4+40,2165+b,zf-540],[L4+40,2195+b,zf-540],[-40,2195+a,zf-540]]),C.lim)}
+  [[60,zb-60-1070,1370,1070],[1500,zb-60-1070,1370,1070]].forEach(([x,z,w,d])=>{tb(par,x+30,x+w-30,150,1260,z+30,z+d-30,C.kont);tb(par,x,x+w,1260,1330,z,z+d,C.kont)});
+  tb(par,3500,4080,0,1000,zb-60-740,zb-60,C.kanta)}
+let cur=[];
+function goalX(l){return l.pos[want][l.i]}
+function setDoor(d){want=d;document.querySelectorAll('[data-d]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.d===d))}
+function setView(v){anim=null;sph.half=undefined;SHOWLBL=v==='lok';if(siteG)siteG.traverse(o=>{if(o.name==='lbl')o.visible=SHOWLBL});document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+  if(v==='lok'){tgt.set(L/2,500,1600);sph={r:13000,th:-1.45,ph:1.0,half:12500};setRoof(true)}
+  if(v==='iso'){tgt.set(L/2,gy(L/2)+700,900);sph={r:7000,th:-0.55,ph:1.08}}
+  if(v==='front'){tgt.set(L/2,gy(L/2)+900,900);sph={r:6600,th:0,ph:1.5}}
+  if(v==='top'){tgt.set(L/2,0,900);sph={r:6400,th:0,ph:0.03};setRoof(false)}
+  sph.r0=sph.r;fit()}
+const FOK={sve:{th:-0.55,ph:1.08},vrata:{th:0,ph:1.38},straga:{th:Math.PI,ph:1.38},lijevo:{th:-Math.PI/2,ph:1.38,half:D+CFG.prepust+1400,tx:0},desno:{th:Math.PI/2,ph:1.38,half:D+CFG.prepust+1400,tx:L}};
+let anim=null;
+function focusPloha(k){const f=FOK[k];if(!f||!cam)return;document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',k==='sve'&&b.dataset.v==='iso'));
+  const r0=sph.r,th0=sph.th,ph0=sph.ph,t0=tgt.clone(),ht=sph.half;sph.half=f.half;sph.r0=0;fit();const r1=sph.r;sph.r=r0;sph.half=ht;
+  let dth=((f.th-th0)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI;
+  anim={t:0,dur:0.7,th0,dth,ph0,dph:f.ph-ph0,r0,dr:r1-r0,t0,t1:new THREE.Vector3(f.tx??L/2,gy(f.tx??L/2)+800,D/2+150),half:f.half}}
+function setRoof(v){showRoof=v;$('bKrov').setAttribute('aria-pressed',v);const r=root&&root.getObjectByName('krov');if(r)r.visible=v}
+function group(id,arr,key){const e=$(id);e.innerHTML='';arr.forEach(([v,t])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.setAttribute('aria-pressed',cfg[key]==v);
+  b.onclick=()=>{cfg[key]=v;if(key==='pl'){ui();focusPloha(v);return}if(key==='n'){cfg.r=0;cur=[]}else cur=leaves.map(l=>l.x);ui();build()};e.appendChild(b)})}
+function plohe(){const W=wings(cfg.n),yS=CFG.yStraga,yN=CFG.yNapr,top=z=>yS+(yN-yS)*z/D;
+  const straga=CFG.straga.slice(0,-1).reduce((a,x,i)=>a+(CFG.straga[i+1]-x-CFG.stupW)*(yS-160),0)/1e6;
+  const bok=(D-2*CFG.kutD)*((top(CFG.kutD)+top(D-CFG.kutD))/2-160)/1e6;
+  const vrata=W.n*W.p*(CFG.krilo.ispH??(CFG.krilo.y1-CFG.krilo.y0))/1e6;
+  return {tlocrt:L*D/1e6,krov:(L+80)*(CFG.prepustStraga+D+CFG.prepust)/1e6,straga,lijevo:bok,desno:bok,vrata,n:W.n}}
+const eur=v=>v==null?'po izmjeri':v.toLocaleString('hr-HR',{maximumFractionDigits:0})+' '+CIJ.valuta;
+function temelj(){if(typeof TEM==='undefined'||!$('tTem'))return;const T=TEM,a=T.V2,dec=v=>String(v).replace('.',','),pct=v=>Math.round(v*100)+' %';
+  $('tTem').innerHTML='<tr><th>Varijanta</th><th>Izvedba</th><th class="n">Iskorištenost</th></tr>'+
+   `<tr><td>1 · zemljani vijci</td><td>pilot P3 (inox Ø60,3 + jezgra Ø50), glava 170×100×15, 2× M16 na ±65 — moment u spoju ${dec(T.S.M)} kNm</td><td class="n">${pct(T.V1.eta)}</td></tr>`+
+   `<tr><td>2 · pločica na betonu</td><td>pločica ${a.ploca.join('×')} S235, 4× M10 (5.8) kemijsko sidro, sidrenje ${a.hef} mm — vlak u sidru ${dec(a.T)} kN</td><td class="n">${pct(Math.max(a.etaA,a.etaB))}</td></tr>`+
+   `<tr><td>2 · pločica (savijanje)</td><td>potrebno ${dec(a.t_pot)} mm, ugrađeno ${a.ploca[2]} mm</td><td class="n">${pct(a.etaPl)}</td></tr>`;
+  $('nTem').textContent=`Varijanta 1 za asfalt (nosivost tla potvrđuje se probnim opterećenjem na terenu). Varijanta 2 za izbetoniran temelj: beton najmanje C20/25, debljine najmanje ${a.h_min} mm, sidro najmanje ${a.c_min} mm od ruba betona. Sidro provjereno po EN 1992-4 (skupina sidara, mjerodavno) i po tablici proizvođača ljepila.`}
+function statika(){temelj();const ks=['straga','lijevo','desno','vrata'].map(k=>CIJ.puna.isp.includes(cfg.isp[k])?'1':'0').join(''),r=STAT.k[ks],M=STAT.meta,pct=v=>Math.round(v*100)+' %',dec=v=>String(v).replace('.',',');
+  const red=Object.entries(r.eta).concat([['Podrožnice',M.podr]]).sort((a,b)=>b[1]-a[1]);
+  $('tStat').innerHTML='<tr><th>Element</th><th>Profil</th><th class="n">Iskorištenost</th></tr>'+red.map(([e,v])=>`<tr><td>${e}</td><td>${e==='Prednji stupovi'?r.stupN:(M.prof[e]||'40×40×2')}</td><td class="n">${pct(v)}</td></tr>`).join('')+
+   `<tr><td>Krovni lim</td><td>${M.krov.lim}</td><td class="n">${Math.round(M.krov.eta[0]*100)}–${pct(M.krov.eta[1])}</td></tr><tr><td>Vijci krovnog lima (uz rub, podizanje)</td><td>Ø5,5 + podloška Ø16</td><td class="n">${pct(M.krov.eta_vijak)}</td></tr><tr><td>Progib prednjeg nosača (težina + snijeg, s nadvišenjem 4 mm)</td><td></td><td class="n">${dec(M.krov.progN)} mm</td></tr><tr><td>Dopušteni progib nosača (L/500)</td><td></td><td class="n">${dec(M.krov.granN)} mm</td></tr>`+
+   `<tr><td>Pomak vrha na vjetru</td><td></td><td class="n">${dec(r.vrh[0])}–${dec(r.vrh[1])} mm</td></tr><tr><td>Dopušteni pomak (h/150)</td><td></td><td class="n">${dec(r.gran)} mm</td></tr>`;
+  const u=[`Sve provjere prolaze (iskorištenost ispod 100 %, pomak ispod dopuštenog). Čelik S235, cijevi EN 10219, kombinacije prema EN 1990.`,
+   `Opterećenja: snijeg ${dec(M.sk)} kN/m² na tlu (${dec(M.s.toFixed(2))} kN/m² na krovu, HRN EN 1991-1-3), vjetar ${dec(M.vb0)} m/s (HRN EN 1991-1-4), lokacija ${M.mjesto}, oko ${M.nv} m n. v.; vjetar iz sva 4 smjera.`,
+   `Krov: snijeg, vjetar odozgo i podizanje vjetrom (podtlak). Krovni lim ${M.krov.lim} na podrožnicama na razmaku ${dec(M.krov.raspon)} m provjeren prema tablicama nosivosti proizvođača, i na opterećenje odozgo i na podizanje. Vijci lima (svaki drugi val, na svakoj podrožnici): uz rub krova ≈ ${dec(M.krov.vijak_rub)} kN po vijku, nosivost ≈ ${dec(M.krov.R_vijak)} kN (HRN EN 1993-1-3).`,
+   `Zemljani vijci: najveća računska vlačna sila ≈ ${dec(r.vlak)} kN po vijku; nosivost se potvrđuje probnim izvlačenjem na terenu.`];
+  u.push('Vrijednosti su najnepovoljnije od: krila zatvorena i otvorena (oba lijevo ili oba desno), stup na zemljanom vijku upet i djelomično upet; vjetar i na same štapove kostura.');
+  u.push('Kostur je zavaren u komadu (prostorni okvir): kape na vrhu stupova, pločice i kutni limovi na spojevima. Rogovi na ušicama s vijkom M10, krov naliježe — krovni spreg nije potreban.');
+  u.push('Spojevi, zatik krila Ø20 u betonskom bloku i graničnik krila s odbojnikom provjereni su posebno (EN 1993-1-8); stup na zemljani vijak preko glave 170×100×15 s 2 svornjaka M16 na ±65.');
+  if(r.stupN!==M.prof['Prednji stupovi'])u.push(`Stražnja strana i vrata zatvoreni: prednji stupovi ${r.stupN} mm.`);
+  $('uStat').innerHTML=u.map(t=>'<li>'+t+'</li>').join('')}
+let ZADNJE={rows:[],sum:0};
+function cijena(){const P=plohe(),rows=[];const add=(t,m2,c)=>rows.push([t,m2,c,m2==null?c:(c==null?null:m2*c)]);
+  add('Kostur (po m² tlocrta)',P.tlocrt,CIJ.m2.kostur);add('Krov od trapeznog lima',P.krov,CIJ.m2.krov);
+  [['straga','Straga'],['lijevo','Lijevi bok'],['desno','Desni bok'],['vrata','Vrata – ispuna']].forEach(([k,t])=>cfg.isp[k]!=='nema'&&add(t+' · '+ISP[cfg.isp[k]].t.toLowerCase(),P[k],CIJ.m2[cfg.isp[k]]));
+  rows.push(['Sustav kliznih vrata ('+P.n+' krila)',null,null,CIJ.kom.krilo*P.n]);
+  if(CIJ.puna.c&&CIJ.puna.plohe.every(k=>CIJ.puna.isp.includes(cfg.isp[k])))rows.push([CIJ.puna.t,null,null,CIJ.puna.c]);
+  CIJ.fiksno.forEach(([t,v])=>rows.push([t,null,null,v]));
+  const sum=rows.reduce((a,r)=>a+(r[3]||0),0),otv=rows.some(r=>r[3]==null);ZADNJE={rows,sum};
+  if(!CFG.cijena||!$('tCij')){statika();$('barTxt').textContent='Cijena u ponudi';return}
+  $('tCij').innerHTML='<tr><th>Stavka</th><th class="n">m²</th><th class="n">Iznos</th></tr>'+rows.map(r=>`<tr><td>${r[0]}</td><td class="n">${r[1]==null?'':r[1].toFixed(2).replace('.',',')}</td><td class="n">${eur(r[3])}</td></tr>`).join('')+
+   `<tr class="tot"><td>Ukupno bez PDV-a${otv?' (bez stavki po izmjeri)':''}</td><td></td><td class="n">${eur(sum)}</td></tr><tr><td>PDV ${CIJ.pdv*100} %</td><td></td><td class="n">${eur(sum*CIJ.pdv)}</td></tr><tr class="tot"><td>Ukupno s PDV-om</td><td></td><td class="n">${eur(sum*(1+CIJ.pdv))}</td></tr>`;
+  statika();
+  $('nCij').textContent='Informativna cijena, nije ponuda. Konačna nakon izmjere i potvrde mogućnosti izvedbe. '+CIJ.napomena(eur(CIJ.piloti));
+  $('barTxt').textContent='≈ '+eur(sum)+' bez PDV-a'+(otv?' + po izmjeri':'');$('primjer').hidden=!CIJ.primjer}
+function ui(){if(CFG.izborIspune){group('g-pl',Object.entries(PLOHE).map(([k,v])=>[k,v]),'pl');const sel=cfg.pl==='sve'?(new Set(Object.values(cfg.isp)).size===1?cfg.isp.straga:null):cfg.isp[cfg.pl];
+{const e=$('g-isp');e.innerHTML='';Object.entries(ISP).forEach(([k,v])=>{const b=document.createElement('button');b.type='button';b.textContent=v.t;b.setAttribute('aria-pressed',sel===k);b.onclick=()=>{(cfg.pl==='sve'?Object.keys(cfg.isp):[cfg.pl]).forEach(q=>cfg.isp[q]=k);cur=leaves.map(l=>l.x);ui();build()};e.appendChild(b)})}}else{cfg.isp={...CFG.izvedba};$('g-pl').hidden=$('g-isp').hidden=true}cfg.n=2;$('g-n').innerHTML='<p class="opis" style="margin:0">2 viseća klizna krila (teleskop), mreža do 1800</p>';
+  const lays=LAY[cfg.n];group('g-r',lays.map((l,i)=>[i,l.t]),'r');const lay=lays[Math.min(cfg.r,lays.length-1)],W=wings(cfg.n);
+  const u=[...new Set(Object.values(cfg.isp))];$('o-isp').textContent=!CFG.izborIspune?u.map(k=>{const q=Object.keys(cfg.isp).filter(x=>cfg.isp[x]===k).map(x=>PLOHE[x]);return q.map((x,i)=>i?x.toLowerCase():x).join(' i ')+': '+ISP[k].t.toLowerCase()+' — '+ISP[k].o.charAt(0).toLowerCase()+ISP[k].o.slice(1)}).join(' '):u.length===1?ISP[u[0]].o:'Kombinacija: '+Object.keys(cfg.isp).map(q=>PLOHE[q]+' – '+ISP[cfg.isp[q]].t.toLowerCase()).join(', ')+'.';$('o-r').textContent=lay.o;
+  $('ukr').innerHTML=['Gabarit '+GAB()+', visina oko 2,0 m. Krov od trapeznog lima s prepustom 0,5 m nad ulazom i padom prema natrag, pa voda ne curi na ulaz.',(n=>'Mjesto za dva kontejnera 1100 L'+(n?' i '+(n===1?'kantu':'dvije kante')+' 240 L':'')+'.')(lay.items.filter(o=>o.t==='KA').length),'Klizna vrata: 2 viseća krila koja se slažu jedno iza drugog lijevo ili desno, pa se otvara strana koja treba. Svaki kontejner izlazi ravno van.','Prednja strana bez srednjeg stupa — cijela širina je slobodna za ulaz.','Čelična konstrukcija, ispuna u okvirima ('+u.map(k=>ISP[k].t.toLowerCase()).join(', ')+'). '+(TMODE==='ravno'?'Teren se prije montaže poravna u ravni plato, konstrukcija stoji ravno.':'Konstrukcija prati nagib terena.'),'Zaključavanje: jedna brava s cilindrom u sredini (zlatno) spaja oba krila. Svako krilo klizi samo u svoju polovicu, pa spojena krila stoje. Otključaš – otvaraš lijevu ili desnu stranu, kako treba.'].map(t=>'<li>'+t+'</li>').join('');cijena()}
+document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>setDoor(b.dataset.d));
+document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+const OT={ravno:'PREPORUKA: prije montaže teren se poravna u plato (iskop i nasip ≈ 8 cm na krajevima, podloga ispod spremišta i staze). Spremište stoji ravno, vrata kližu vodoravno, kontejneri ne bježe niz kosinu.',kosina:'Teren ostaje kakav je (raste udesno ≈ 2,5°, ≈ 14 cm na duljini spremišta); kostur prati teren kao kod susjednog spremišta.'};
+function setTeren(m){TMODE=m;s=m==='ravno'?0:S0;document.querySelectorAll('[data-t]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===m));$('o-t').textContent=OT[m];ui();build()}
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>setTeren(b.dataset.t));$('o-t').textContent=OT[TMODE];
+$('bKrov').onclick=()=>setRoof(!showRoof);
+$('bS44').setAttribute('aria-pressed',show44);$('bS44').onclick=()=>{show44=!show44;$('bS44').setAttribute('aria-pressed',show44);const o=siteG&&siteG.getObjectByName('s44');if(o)o.visible=show44};
+$('bPil').onclick=()=>{showPil=!showPil;$('bPil').setAttribute('aria-pressed',showPil);$('o-pil').hidden=!showPil;build()};
+$('bKo').onclick=()=>{showKo=!showKo;$('bKo').setAttribute('aria-pressed',showKo);const k=root&&root.getObjectByName('kont');if(k)k.visible=showKo};
+function controls(){const el=renderer.domElement,pts=new Map();let pd=0;
+  el.addEventListener('pointerdown',e=>{anim=null;el.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY})});
+  el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const o=pts.get(e.pointerId),dx=e.clientX-o.x,dy=e.clientY-o.y;
+    if(pts.size===1){sph.th-=dx*.008;sph.ph=Math.max(.03,Math.min(1.62,sph.ph-dy*.008))}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===2){const [p,q]=[...pts.values()],dd=Math.hypot(p.x-q.x,p.y-q.y);if(pd)sph.r=Math.max(300,Math.min(16000,sph.r*pd/dd));pd=dd}});
+  const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pd=0};el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+  el.addEventListener('wheel',e=>{e.preventDefault();sph.r=Math.max(300,Math.min(16000,sph.r*(1+e.deltaY*.001)))},{passive:false})}
+function loop(t){requestAnimationFrame(loop);const dt=last?Math.min(.05,(t-last)/1000):0;last=t;
+  leaves.forEach(l=>{const gx=goalX(l),dd=gx-l.x,v=900*dt;l.x+=Math.abs(dd)<=v?dd:Math.sign(dd)*v;l.g.position.set(l.x,gy(l.x)-gy(0),0)});
+  if(anim){anim.t=Math.min(1,anim.t+dt/anim.dur);const e=anim.t<.5?2*anim.t*anim.t:1-Math.pow(-2*anim.t+2,2)/2;
+    sph.th=anim.th0+anim.dth*e;sph.ph=anim.ph0+anim.dph*e;sph.r=anim.r0+anim.dr*e;tgt.lerpVectors(anim.t0,anim.t1,e);if(anim.t>=1){sph.half=anim.half;sph.r0=sph.r;anim=null}}
+  cam.position.set(tgt.x+sph.r*Math.sin(sph.ph)*Math.sin(sph.th),tgt.y+sph.r*Math.cos(sph.ph),tgt.z+sph.r*Math.sin(sph.ph)*Math.cos(sph.th));cam.lookAt(tgt);prozirno44();renderer.render(scene,cam)}
+function prozirno44(){const o=siteG&&siteG.getObjectByName('s44');if(!o)return;const p=cam.position.z<-CFG.lok.G;if(p===o.userData.p)return;o.userData.p=p;
+  o.traverse(m=>{const M=m.material;if(!M||m.isSprite)return;const u=M.userData;if(u.op0===undefined){u.op0=M.opacity;u.t0=M.transparent}
+    M.transparent=p?true:u.t0;M.opacity=p?Math.min(u.op0,.15):u.op0;M.depthWrite=!p;M.needsUpdate=true})}
+ui();init();
+{const st=$('stage'),b=$('bFs'),bar=$('fsbar'),FSB=['bKrov','bKo','bPil','bS44'];
+ {const w=document.createElement('div');w.className='fspog';const t=document.createElement('button');t.type='button';t.textContent='Pogled ▾';t.setAttribute('aria-expanded','false');
+  const m=document.createElement('div');m.className='meni';m.setAttribute('role','group');m.setAttribute('aria-label','Pogled');
+  document.querySelectorAll('.side [data-v]').forEach(o=>{const c=document.createElement('button');c.type='button';c.textContent=o.textContent;c.dataset.v=o.dataset.v;c.setAttribute('aria-pressed',o.getAttribute('aria-pressed'));
+    c.onclick=()=>{setView(o.dataset.v);w.classList.remove('on');t.setAttribute('aria-expanded','false')};m.appendChild(c)});
+  t.onclick=()=>{const on=w.classList.toggle('on');t.setAttribute('aria-expanded',on)};w.append(t,m);bar.appendChild(w)}
+ FSB.forEach(id=>{const o=$(id),c=document.createElement('button');c.type='button';c.textContent=o.textContent;c.dataset.za=id;
+   c.onclick=()=>{o.click();sync()};bar.appendChild(c)});
+ function sync(){bar.querySelectorAll('button[data-za]').forEach(c=>c.setAttribute('aria-pressed',$(c.dataset.za).getAttribute('aria-pressed')))}
+ const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+ function set(on){st.classList.toggle('full',on);document.body.classList.toggle('fsl',on&&!fsEl());b.setAttribute('aria-pressed',on);b.textContent=on?'✕':'⛶';
+   b.setAttribute('aria-label',on?'Izađi iz cijelog zaslona':'Prikaži 3D preko cijelog zaslona');b.title=on?'Izađi':'Cijeli zaslon';sync();resize()}
+ async function ulaz(){set(true);const f=st.requestFullscreen||st.webkitRequestFullscreen;if(f){try{await f.call(st)}catch(e){}}
+   try{if(fsEl()&&screen.orientation&&screen.orientation.lock&&matchMedia('(pointer:coarse)').matches)screen.orientation.lock('landscape').catch(()=>{})}catch(e){}
+   document.body.classList.toggle('fsl',!fsEl())}
+ function izlaz(){if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}set(false)}
+ b.onclick=()=>st.classList.contains('full')?izlaz():ulaz();
+ ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&st.classList.contains('full')&&!document.body.classList.contains('fsl'))set(false)}));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('full'))izlaz()});
+ let auto=false;const MQ=matchMedia('(orientation: landscape) and (pointer: coarse) and (max-height: 520px)');
+ function okret(){if(!CFG.autoFull)return;const pol=MQ.matches,on=st.classList.contains('full');
+   if(pol&&!on){auto=true;set(true);document.body.classList.add('fsl')}else if(!pol&&on&&auto){auto=false;izlaz()}}
+ b.addEventListener('click',()=>{auto=false});
+ (MQ.addEventListener?MQ.addEventListener('change',okret):MQ.addListener(okret));okret();}
+try{if(matchMedia('(pointer:fine)').matches)$('hint').textContent='vrti mišem · kotačić zoom';setTimeout(()=>{const h=$('hint');if(h)h.style.opacity='0'},6000)}catch(e){}
+{const dlg=$('dlg');$('bHelp').onclick=()=>dlg.classList.add('on');$('dOk').onclick=()=>dlg.classList.remove('on');dlg.onclick=e=>{if(e.target===dlg)dlg.classList.remove('on')};
+ $('barTxt').onclick=()=>$('cij')&&$('cij').scrollIntoView({behavior:'smooth',block:'start'});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')dlg.classList.remove('on')})}
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches)setTimeout(()=>{if(want==='zat')setDoor('D')},1400);
+
+const BRENDOVI={
+  flash:{naziv:'Flash Metal',logo:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAI4AAABgCAYAAADLs0r6AAAhn0lEQVR42u1deXxU1fX/nvvezGQmCQmBEILIIgjKIqsLKgLWiq1aqjaxbnWXqkWrFrFQmRl+4oJaQa2traK4UDujBVGxKhp2AmJYE5YACSEkZJ0kk8ms757fHzMTBkjChIRFM+fzGTK89+a+++4975zvOfeccwkRxMyCiKR7hbuvv5M7n4xCkELMzAIMgAAwAGYwAUTUeBiI+MJHtAqWwWMMBlHwovBfAICIOA8Kngv9nwEQhxoVFLwFA8zceCsikoqqCHeBs3zdzxafdx0ecjCYKPTL1pDZbBZWq1VmjVrSddjci1cZeplMvmK3Y/3Nn1458cB9DovFQlarVeInRAwQmGkyjVaezfr824SzEsc2lLiyU8anXcbMHJqrI8ZSbaqhuERS44Z3BgCStRoJRURwR9N3xtHME+SOI6+TEZN9zDUcRbvU5HUspSBVQHP4VR800R6DGU+a0dg3YUDcWSZh6pXQa/jrV08jomnMLKxWK35SFBQYWtnCfXd0uaL7WAiADdQFAJFCEk3MfpOMU7fHKRKH6ZX67TXrt1jWTO7aJ126HD4AvtAVeuhC3/yNx44mPXT6I4/4faFrDzcT/gcAoNMDfl/kBaGvekAHPfwAdKF76vSh3/l8YMFMqoEUaLU3YkpVkB1bL22O4HFhYBLkC7j8cSBC8iWpj2dnfrZQKGKLLcOmZNoztZ8GzzAB4Kxxi5I7/6yHFSHdorm1VjUiAID3ci9mZq1Oew8djMxmswCArKGf9PRVevyufXW1+9/ZuZaZueK7kq9C46T8dIRN8FlKFxXMZWauyinzsldywz5XPgAF4hg90rzEgSd4oQxIA5tZIAMq7Aic6YNggQXtiT9YAopJpbzn103vds3Zn6Rclnb17udzfkNEHzOzQkQ/aqljy7AppJCWc9uyQV0uT58s/dJV9sGeN1KeS50alkStkzi53JuZmev5w9BxtUNKnAqv111cz79Cl8RDiwseZ2b2FDdsXpK+xMTMStBE+FFLGwGAqrJKP2Vmrl5VPn/5BQtHMDO79tXvAiCakzgtA0mJDk/MUru734vJK3/95DzvAfdmw1nGYaPnDfkTEWlgiB/tc9lYIUFyjzXnmuRLuv3KW+b2bJuz7v+SL++pb5pVWsM4MbYBiNikqGom7Fr5p3ufkl4NXa7o/sSqifbBACSb+cc4hoQMsI3N+vTMc2aLOIG6dZVzx302qUCnVxOjaeA4Dx0TOWDAW+HWIIBeU4Z+U72q5At9mrHTwMcvmU1EDAt+dOoq7K+7/P3f3Wc6L2mEt8hVuGvmqjnMTG6PX7adcTq8PKLD8JABEiR3vrRpmq/K4+wyLv26fXO2XU2CNLb9eKyskISU34yy9Uq6rNtsAKhcetA6dtttDiJiRREy+OR84qwhNRETNwQAboABuUHqxn41KbdmZflcYVCU7jf2eYYZhIxoUMEZY3oSEfHQ6RfONPVNSHbmVG947MG/LAwbQGqjVKITZxxB6PAUdLcbAQD2F+ySmcXWP61/2VPUsNvYL+HC8k8KHiQiLWyRntHmt82mkCK0TfdlDU8Zl/67gNPPB9/bPc1Odh/sueKYl+bEVVUM40QOYO6gXAZAP9+XWVv68d6/IAAkXdZ91poJH/f+MQDljIwMQLLoc++Q53RdDLq6H6rfP3/emOUsWQEGh3xS0XleYlZVc+RuACQfI7JD0kU554kL/uv4vvw7Q1pcl/5PXvTMmQ6Uww7LfXO2XJ80qss1nlJ3w44XcmYxM8ECBuzH4rsY47Qv2e12QJC275/bpgZq/O6Uy7rfvOPP2RPOVKAcclSyDeaE1Ot7zyEdwZld8ezl//vlXgCCrBShWgIxidMOAKdJXZ+ZmamxJpXR716VU7W89F9qok6XflO/eWbO0CMjHHRyRnGOICI55r3bHk44L2lAfW7N/v/daJvLzAJ0Yj6XGOMcF98Q4G7SUpfMLFY+uOwZ9wFXYdKorkPvftP6ABHJM8mjHDa/V4y19e165VlPws8oX1I443eY6kJLUQSyLeC4w2NjQoRRdfQZBkCZh+6tKFtcaAUDab/sMzNrnK07ABle8zpTzO9BMy4zx51lSqnZULm63/QRC0NOwBNepG3Zj9OhOccUjakumVnp+8iQBa7c2mVxPY2pQ6dfZiYitlgsp11dhdajtF1Pbbw4+dLU2zS35nZ8V/wHUNtilY7vx+nQmqwBUUQVMOwACLz/g91PBup8/uRLU+/Oe3jtSBKn3bdD9gw7wFC63dD7RTVRp9asKltwzsyRW1hKhYjkSWOcDs03xuiCUSiTNJasDH7hok3VK8vmKwk6w1n3D3wpg6GEbNrTInmYWWRSprZ37tZbkkd2Hes+4KrMeWrF/zEzWSyWJh4tI+TGCflxlDaZ4x0bOxNFN+cWi4WZmTY/+/1Mb4nnYKdhKRNe/Ofu354uj3LY/F6MtxK7T+prhQrUrSl/5upNt5YAEE0Hu9mPMMcJMc5o65t73GtCEyEmrrupvHLZgZkAkH5tz1mLer+TDJwG8zxkfo98+/I/m/oknOPZ59qec8tn/4jK/A4ctidjjHMi5I6OaSLEk2Rm8a8773+v9vvKzfoexnMueWWc+VSb57YMmwJALr/2s3O7Tuz5R/gYBz7c+dwv8agXrQni57YwTkc3x1vDNwDb7Xay0orA3g+2/Sng8msp43v8fnXGl2OEIjSbzXZKPMoZtgwQEQ+bftFM41nxRue26i8HzBzdZvO7lRKnY3MOEUCCgLjors/MzNRYsjLq1Su/rV5bZtd3NsQNeWLULJZMGRkZpwQQkyAtb+racYkju2T6a7zewo/yn4oWqwXB8eFnj4HjE9NUIUlCgKcVP7SAmZl2vpgz3V3sqk8anXrV3jlbbgkvjp5MPgeAB3iULv03/ecpcYresbL8Hxe8NGarbAfzO2aOt+oNbiXOARBaMBTjvplUUL2i1AIFSJvU59lFSa+cVKAcDged/uqCyckXpQ7zFDWU7jJnz27e/D7+s0chmNrD/DuVnlIrU6sQyAm5cUAUzK06gXdfMrN4lR55/e4hlvsTh6UMvPjN66cS0QxmVkBo13ys0PKG/N8gW0q363tNB4Dyr4pmXbE5s4LBitVqjf5+UWbPqe2BcUJInX9yIocIRCfCN8RsZ/Eovea9+qNbnzx3wOhFXX/W85Efbv76AwA72cxHhTK0jSwWCxGRLP/0wJ+NfRLTnZsdOd898NG7QfObTgpQbavEIQC83TSne7LCSXXQmBCIGGoDAG/zv/a2/oYGJKLaZzowGpMb0FwVgvbUVScoRykziGmIaInj2gpb8uVdf9vvkeGziehGZhZop7oFwXBQ0jbdmjU8+fLUKQGnn0s/LnjsbrJ67rJbFGqthaNGAKaTxTjBoAMVRtOyxXpdyUXxkiSBRBM1KXBkDZTQXBuDx5hwlHeBm+EJTUsUiYrfM+QR1OB1xjiFsOLMTU0OAeX1mV9PHzVo/MSEUSm/zn9p80Qi+qq9UogzMjIwKnOU7qy7zn1Fl2Iw1K6tWDBw9qiVrW8/4wiW4OO8j21iHBEsWgMFLqMqSiBIITqCW1q7VMNNMFgkA0noFSfpvH2Mp0hXte3XVpJsYeUS+8SCkt/seyU9s++snhkDnnvxT0+sBuA50Ro+jaNlCzJH/qwfrk0d12O8r9xbvWPOD5bD4aAn79nbxW5iEqoqQEQsFBAUAlQCFAAKOPSRUEhCAUMljjgeOtf4XQv+JYYCivjOAFjoCFCEPDX2HrfSC9g8UFaW3fzJX937nNvjehlHZLx9/+NtTSFmMCED/B6eiO+R2e956AnO7KqXxnz6i8Lly5crrcdQwbUqNRCIfPiTI3EkQASNWXba7/P3SWep6AOImFRugnMpEj8wwOKwTDkKYxMfVmVgAgtN80qjZDZVAsDyUyJw2ih1gkAZv8NU14XvjLUOnHmhPf263o9tuPHzDwEUnDBQDq5HaYf+u/8+08Ck8135zsLv7vr8jdB61AmrwECUEkdtuzDTsL/q9RvT4I6PR7WhAQ3tMGPhNo4MpjIB2If4wDBcWgEswISTjm/aB3dHAOVPHNeVfZ58cbfr+j8y6hkiuvVEgHI4HPTriz88t/OladMhgapvS6ZlOibXMh5QCG2wpALRDWlz9XFaNbIT0NeD1vlXfyQOQGq1A7BZRZBpBwni3W9sf2rEuZdN6HRR18y8adkfkqAv2MYKZbYCyAbDQeWhJYUz9GmGbrUbKlf0fvC8j8NOwLbZ2dGZVWo7uHFCibIMyylwAlpg4baWaYuOTO0agpVpzwxLndxDk/a9lnZj36d63j7wOfMLd36LDPiiBcrhcNC8J7MvSRmXfou/1ucrmJ/3JAjSbrcraOMCY7QivGnGiWvdzehwkvVJn1ArTlHhRiPaP3Yv5FG2Jz7712sGPXRb4pDkofe+M30KEb0YjUeZg+VJMCWzv6HXHQNn6Trp9ZVLi+ePeHPchvYy76PFLrF4nJZwFnO7cg+BGHZQZv2MCseqsikyIDlt4tlPrbpuSS9Ek0IcCo146Jn/3BZ/fvLPfaWe6vx3N88Mmt+WU+q5jy1yNkduAJKO6wg7UaDc+4HzPnVtcSzVpxtTzn905HPHSyEOh4O+nzKv09m/PXcGFKDqu5JnL7VffxCAoFNcezkmcVqcZQ4pX3f7425myn87b7rf4a1Pujj1lm1Tj5NCzFCISF738c33x/dLPMed79xiv33u623JxmyLQRmLAGyJbxoXOY3t3a4EIEb9/Yqtld+UvKUm6qnP7QPnzOMpBmQcs1YTNr+11Tcv7Rd/QecZ0iv5oH2v5VF6rXXhoCdd4nhiwibsQ6KTlN1iIQszs1j/7AprQ4GzKOGC5NE3vP3wfaEkP9GE+c0D7hn6sq6LvnPdJsfn584YsZjl6SuZK1qyqmSHzqtqCJmLfDJUFaywSgB0w5a7a8o/LTBDAqlXn/30sosXpiEihThsfm+bvn5il8vTJwXq/K79C3ZNJ3GSrNiwPd6W3PGOXVfJdJRtflJUocbMou9jwxbUbChfF9fTlDZ89vhZESnEhAxwBkPpdWO/54VJQe2aijeG/+Oy7VJr/3DQY5wsMXB8xoMpLrXtftxf6/MnX5h6z47H11xKgjTevl1HRPKFN7bf22lUl+HeooZDax5e+jIzC8vJMr+jdOTEGKdFP84pAeCSpVQGvTI227Gi7G2lk6qm3z7gJTPfGYfBg+XS/m+npl19thUAKr4uNk8quL8MwMnf+qgtaQwdGuO4Tacs6zucQrxh5hfPuPLrHEnDu46Z/KE5k4gCo+dePc3Ur1P3+tyajW/d/8D89s6POhbjtENFrg6NcSJhjfvk3iqcQnz9lgcPln1Z+DQISLky7ekNt3x1ffKl3R7SGjSULto7w0orArCfZHZWo9NVKmLUvKoCDhdWOskuinDeFRH9rX6C49b4ocmXDpo9ZqGus97oWFvx3wFPj/76TNqxJoZxWrSq6LiFotuT7HY7SBAOfrLnsYAz4Ivvm2j0lLrde97eNr19wkFPFTju8GzFp7S6TWZmpiY1qQy0XrihctmBv8EJxbH60AsXzf/ZLhxTHfS0QpyYqmpZVfGpd+YHQy/IQndN//XD9y2p+duy1cH9VOmMQpwxxjnOLJ7qPEMCcSg5xGP924LlwYPWU88QJ+Q5DgPBjmxVuU2Heed0KElm4mBplNPTgxPKHY+tVSHsAOTTlNhMIEYmTqEFdWRCXpt2yOvIfhx340vXUbbQObIGYMwcP0EyRsKcGLWOcSR33IFxx3gjJnFOSOIYTafDqDr9FK462qbQ0ZiY7njU1jInUkopOrBB7nY3gDWWLCU8HUJvBa0qRa+wlDJYIaLVjKNACCEEdDB2VMbR6aUwJBjiYDAg0aAXP/047KBVxR5NJ4QQio7io1dVltDfYjQ4c2q212VX7Q212WE0fTiyLjEhtaZ2S9U6R05FdkKSvjby3E+ScnMZAKRqLHBuqdni3eNaBYBZ446I9GJ0yokUAnXw/aNJITBzhxoEBlNHfO4YxShGMYpRjGIUoxjFqA0omllhZrXZTxObVrCNleMWAWrpnlmstgK1E9sa+6gws5qVldXs7xlMnJWlHueZRbPlRKIbL4qq3y08JzOLFsf9qMIDUVyvHve5g+OoRPmc4jRvRttG0/DH6hKgM28sI5iizb1TSz7Y+5iaoh/qDwR0UAChAZCCmVhhn6ZVLi6aPuzDCcWh9AwiK8nit3bfoxjjtqff1mtDa+r0MkAWmJUpSydP0w7Uf9TtgXP3WSyW5tJZg3VfJHBg/q4bjf06XSV0FCeEEvCUNOSusXzx75u2PlQOZgIRh4sv7jFv7qbvbvr93uyDcyYsmOBBxBp3uK8l/8q/JuAN9Oj1h/Pnt6JSJwHgso+KplR+X7Fk0Esji4KdPGYzAQIzJtNo1Trf9qf4/qlvdbqiU0Uo4JzDfdj30o6JycOSf+31ek1gOrwsSCTjTEZRt7VySe8/Drbzxo06Gj3af8hedIuus3qtz+XTIEiA0CD9ml8oShIYrBiJ/NWBii2//ezPoW0Uj5AeRCSL383PJBVJRPSvcH+OmaNQ/w68sfsmxaRr6HFX3y+bnGPXHmetc29dTv22uoV131d/6Vhf+YUju+ILX7Hvn/793lc33ZnVBwhubRMWc+7d9au5mJ8Iq51oRTwIKPxb7u3MzK6tNe82Hm9K3TDTp33/lVaztnxd/TZHWdXK0o8bdtbPrFxZ8kFtTtUex7qKqrzH1w8AhfoWUp17/77rIve2es66eFFjvyP6oAJA3drqhdXLy/aGBzU6CULIQIbir/DW126q/HezfQ8d2//OjruYmdnBfSPvE+6Dd3fDq65Cp9uxunyJI7tyqWNt5ReOtZVf1KyvXOzcXrO4/pvq6wCAN7IOAKqWHnrAc8D9bu0P1f91rKr8wpFdWcHFAa7MOrTUsbbyc8f6iq+rs8r/YYNN39RYfj70w851uQ4nH9R4693fnMPM1BTcCPdPK/K/49xS93bksSPImVdbyg4eEeXkBxut5/e5iie3knEIADm31mwueGPnB86NleVFb+QNaeoBwm1Wflv2smt7bfknaS92O7q9gld2/oI3sqkRT4Ta2PXyposadjsPbnxgY9LRYjliUJ6pXlmWEy3jMJhAwDxMMbj2OXdzPXOeOftqUBA3HDVJYvU9ixOrNpRVeCvdsiqrakhTjFO3oWpB1bLSBSeqKg6+u3eWY8WhPVG9sABqVpX/peK7kpzq5eVfOjdUv9EC46sAwJX8ctWKYP+auk4ogggJSNm4caOOd7OhEWhtZF1z4Bg+qa/ZWXl21Po1NLjF7+z8DVie3feh8+7Q/HJN8oXdn26yaOL4oNw2nW28rCa/8u83lU8tZ+b4cJ8ggL6PnfcljaaGwxoiSBqEUOJ0/lFvjnKxmQXsEGzmoETKDX6HAhBBiR6uEIOBR/Ga12DSFzt31Pynx8R+r8zjawzIiNicKLRt8+B7L50NF+fJKu2HlOEpTb5YAU8gTklQ40NjbuLdbGj8bGd9s+C4gOOYWdWnGhKUOL0uNF+6EGhXjlGbgHwH5jglXnm8obDW7Pih9EnFqN626c5FyQBkczv2yYaASbSwaX2wcyr8oy8a7ce58JFCAVIoQBeRH4DWZH05ZgrU+xNCk3x8ygATEccPTPlLfVHduyBw5bqylxSjMmnjA9+ESrWaxdHQ0u/07U8e3O3nYICIXDSa/KRQgDVW2dy0pGssDE4UICtJyiSNrCTJSpKGkI+sJOsLHV2kbH2okQ0ZCmvUfd+bW99haOpN/577cHB76CBjCkVoebM3DIGC+w5+mn93XM/4Bp/X1+SNFL0AaeShAeQlogYaQN7GzxDyHY27iEgSUQCFCBBRQLJkZgkiCgAIEJF2TF55VpZCRHzVwjse8LkD0nbPW9/1e2LYNr9PK+p975iHiIib2IgkuEruY7VxB6mmxpklkyenXgcJIiIVh8PcuSnwFDwBqEbVHZ20Ce6DvWtOzlU6o27Aro/yrg3VrltTk122ve8dQ6cR0cPMrCAMkkP7PH3/5JqZg++5YHnNpqq8+gO18x0bDn4z9Jmx20ODBTabjynTKn1Ck5pM2Dd/x0Su8WscJ6RgqQVDjzSDr8ansYL+Qii+Vll3IAYGKQGnJylhUEp9aXbxlLPG9P0s65e2hQDKYQGxldHtkrP/4TnU8OYFc8fu4+laZz3rm2QcqbGPDEq/PW/k/VafYFDgD0iNwfEmIzmL6g70e2rI6uYAbLBT8viW2/jxEoDofEHXh+v2Op6bSi+7zDPNonZHxdzU0T2eW9p/3svAMVXdCQDUFF29LJVdmm27fnddUe22alfFspLK6pVlVdUryqocK8rKarMry4rn7rozUtU0YoRa7aO6nJqnmwVOTenYtWXf1qwreysSd+S/ueVXrty6hhUTP0lnZjoKyBIAfNL1zfSDiwpfdqyv3Fm3pbqmdlPlfse6ilc3TvwyPfK6MMbZPn39cG+Rh2tzKgt9Rd4sV17dJuf3jvy6DdX5nj0N63z7vd+6SupdVatLV7QKHIfIX+LZtn/BzkkAUL2iLLv8ywNhkE8F8/NurF5eWvtWlxcS2cyCK7UcruNBTWGcmjUV//SUuhsqlh0srVpxqKJqxaGKquVlh2rXVlWUvLNvPgDYmsIgIfxX9lnhy3XrK4uaM6/ZFjRGSuwFNzbsqDuUZc5SI7YPE7Wbq4vLlhQ9dDSGacQ4VTyvalXpe81hHJXAOsHiNW+pK0dvMAiNWSoMBimEgFgXUjVHvtVSkik1oRZAi3v/hHc5yX18zQi1U9wlP8xaZV3Z/+3Ur/u9TyuH23jt5H+vuWHT1IPnPjj6j0Q0jZmF1WoNi+aw6VqKG/AEgCc2/2FF3/Rf9BmrSzP+YfAbY3MLPtl0JYAtkeA6rlcn1Vvrrls65v3xt3gfKwSAcaFIxxUhaVq9tmK+Imhka/0yZjYL9rHO59TAzLT16XX39/31wE17X9vyMhFtq91Y9VdPhfvR+6qmOe+1Pkna76Xq3e80NdmcSp0adtd9lnrVWTcjuLXXMcl3mS2WNBEQitBaggfIBOJ6J8wo21TyVYV1T6dlFy/UAUBdXlXAsbn0o5SR3admAG+iqS0Jj5NepYKJEoZ2sidekPxD85bokeJSBEj4632G4w52aJeTyuWlk+PTEk0Df3fB5+p9qi64EzzT+drlknXQdzo/6Z4XcM8zAOojxSZZSXIWqxgPCFUEhr8+rgCvowDAe46N5dmpE/vODO9xac8MhT4SS51Q9QN+db7KtqAlRyKk2iTrAATgRGHN1kOjWqWqmLgfEoxeh7uralC8oTHZVndt5SspI9JfzP977jIi4Uz7Rc93w3VsAmqA1URjk5MrWYOiCAEBsMZMEUCUoti1RvNqOmP3+OIIrKodZYzIPHP2JZ0HdB0p3dp5E/73y0wShyeS9NAS+6WY5szN+xUJsSjLnKVOsE4IROvFDKoZD5JDNzuS8zMgm9SxCkvngZqeWVlZamGfQpWzGMuxHOMxHhgPJiKNzSxIkPbNtR+fY0w23Z0/f+u9gUOePM2kF4oqJaRGUFW4SmrFoEdGLr7jP3+ZTEQvZWVlqZiAgBlm0QOlCk0gf6Oo/wEKRkElIrdW519i6h3/8whAF3xKF0BMTKoIO9wIfHh7NSJiLtNUqbU+GlJDvaYYFC+ghdWOsnz8u0+PeH3S1v6Tzn+xcOmOkUSHy8iSQgF9d33TW9aSgGLSe/lbVgEorLF2hAQfD9miY1JKDrg1w9FWZaQx4sypmlGzpfzzg4sLZxu6GhTp0zQVOoh4qdQf9AQUoT7Y5Yq0mWBeNN4yXh6xv4oAhAJkZWWp+chXOCuLwh3DeDAa9jgPMvO4SCxzPLwSKPd9XJvteCyaa6u+LZlXs6Eit6VrK5YdfNJT4CrMAJSQ2UlZ47LUmjUVqyq+OzhtHqYcId3yXtwwxLWz1l23rvrBoPGQpYbV1c652y50bq+pXn3V4h7NOQBdP1S/6Vh5aHPrHIAhCV7my9v72pZbg+O1XQ8ARW/tuK36m0MvHt2e94B7V/HH+69qCidWryu3N+ysn3ci63wAULZk/0t12cdiHFuGTQGA/L9uGuze7fRv/HPWec21teGuRWe7dtb6i9/KHxOxlhXEODX8SsV3B+c3b1V5ZBI8rSt34j7kjlfTdOZAofcqKaCCwRDMQidI1ssy3RzDfSTI/9UN73UzJBl/7yyou52ZKdeSqxuMwQF7np0AILU8lcY/PJ6Xv7b4n6NnT7DM+2jfbUT0Hm9k3YSVE/xF+bv+mjI67dm7t8x6+Lbq6cW6REORoiINqhjpr/X9PXlM6pshy0Njc3DwVFKlEhCJxs5xpub6b0pNqvbWVaitVVU2mPXeMne6aMyqz9MYTHQffQjgw6Pr2Cg6Ves8IKmmEXNE8qGEixLo97793v4gViEpLBelMJDwFjRsix+TPLXZpQGf1IHFMUyfYcsACEgZ0X221+FeNfq5CTt5I+vsL9jlUdcJIjpQfnvxtwnnJ80G8LPI7QAa9tammM7pdIdvvzcNAioQlNuCCWDhVcu/KL7dmBK3PYjGjptHJQGg9N97n+80oPPoKs1nhMLBLSiYWTUYKOD2VWc7tkowMPyCkQ112Y6f9/jDOatC4vQYE5iXM03IvKFm96jNl+mTTEGxPgoBZia6ixYBWJT/yuaJph6JYwJejQ0m9duatRUP9X1q6I7ghvLB0SZrcHBrql07jCtLxteVGwqBxsKMh7UNgANL9r3tq3F/0qSYb84BCCADVn/Bp7+5OVDuyguOV4YkEIe94kerlvJPi+4MdNblhv0wAGCxWCQA1G6smePe5drqC3hMwYcQEAIQGrPQKeRr8OU0bWIHn8G5sfo19273R83NUd3Gmrm+Ek9+qG+BTHvmUWtqLJmZch/ecJeph2lYoxo3mwEApYuLXk3oF7/ZE/DFg4mECLv8BAIcqDojVoqb817abDaluVzTH+2S/08mHscWdXzJEWY2Z7Ha1CfLfGRMiC3oAIyuzab7QTabTeGsYBxOJJ5p1sN7nHs2t8AXrUMz2vFqiblbGsNQHE+L/QstOovjxNNQFH2kpsarxf6dYCxTjGIUoxidFPTx0yEzzMIS+m5HHgVT7AeFAGNeaBwGcficHUBG4/lGR0Cz42UHkAm7FmOpGMUoJnGA3LgZvVMUNdGFekCKOCHjurCsL4Ee4IAp1cBGY0CtOQipGuNkcopHqauSQnMFf+1DgBVFCSSmaypEZBVpRRVsgI48Uqvu75mZfTq2OTwd9JOvcxyMc2Yydrpiaby+dJAmNehYQE8KPBwAE2CAAgUCHvJDgGCACoU1BJgRDFkBCIw46CKWAoPvnEaAngLQfN08RZ4rewBwRLv5fIxxznCyAFwAtcjL8elgQycPpPCylIBQwIwAWALMwaBxsAfMDBIEolCYOwjMzqDTDMQEEEEyg8GsF0yMuPJ4dA2gg9D/A9ymYTF5AHXNAAAAAElFTkSuQmCC',mail:'flash.metal@yahoo.com',tel:'385989565053',telTxt:'+385 98 956 5053'},
+};
+const BREND=BRENDOVI[CFG.brend||'flash'];
+$('zLogo').src=BREND.logo;$('zLogo').alt=BREND.naziv;
+$('kont').innerHTML=(BREND.mail?'<span><a href="mailto:'+BREND.mail+'">'+BREND.mail+'</a></span>':'')+(BREND.tel?'<span>Mob: <a href="tel:+'+BREND.tel+'">'+BREND.telTxt+'</a></span>':'');
+const KONTAKT=BREND;
+const ISK={nema:'n',mreza:'m',perfo:'p',lamele:'l',kose:'k'},ISK2=Object.fromEntries(Object.entries(ISK).map(([a,b])=>[b,a]));
+if(!CFG.cijena)$('cij')?.remove();const IMA_CIJ=!!document.getElementById('cij');let sCij=true,skrivenaCij=false;
+function kod(sc){return 'v-'+cfg.n+cfg.r+'-'+['straga','lijevo','desno','vrata'].map(q=>ISK[cfg.isp[q]]).join('')+(IMA_CIJ&&!sc?'-b':'')}
+function izKoda(h){const m=/^#?v-([23])(\d)-([nmplk]{4})(-b)?$/.exec(h||'');if(!m)return false;cfg.n=2;cfg.r=Math.min(+m[2],LAY[cfg.n].length-1);
+  if(CFG.izborIspune)['straga','lijevo','desno','vrata'].forEach((q,i)=>cfg.isp[q]=ISK2[m[3][i]]);skrivenaCij=!!m[4];return true}
+function opisV(sc){const lay=LAY[cfg.n][Math.min(cfg.r,LAY[cfg.n].length-1)];
+  return 'Vrata: '+cfg.n+' krila\nRaspored: '+lay.t+'\nStraga: '+ISP[cfg.isp.straga].t+'\nLijevi bok: '+ISP[cfg.isp.lijevo].t+'\nDesni bok: '+ISP[cfg.isp.desno].t+'\nVrata (ispuna): '+ISP[cfg.isp.vrata].t+
+   (IMA_CIJ&&sc&&$('barTxt').textContent?'\nInformativna cijena: '+$('barTxt').textContent+' (nije ponuda)':'')}
+const url=sc=>location.href.split('#')[0]+'#'+kod(sc);
+function dijeliTxt(){return 'Spremište za kontejnere '+GAB()+' — varijanta\n\n'+opisV(sCij)+'\n\nPogledaj u 3D: '+url(sCij)}
+function osvjeziDijeli(){const t=dijeliTxt();$('sTxt').textContent=t;$('sWa').href='https://wa.me/?text='+encodeURIComponent(t);
+  $('sMail').href='mailto:?subject='+encodeURIComponent('Spremište za kontejnere – varijanta')+'&body='+encodeURIComponent(t);
+  document.querySelectorAll('[data-sc]').forEach(b=>b.setAttribute('aria-pressed',(b.dataset.sc==='1')===sCij));$('sShare').hidden=!navigator.share}
+function ponudaTxt(){const tel=($('pTel')?.value||'').trim();return 'Poštovani,\nmolim službenu ponudu za spremište za kontejnere '+GAB()+' (objekt '+PON.objekt+') u ovoj varijanti:\n\n'+opisV(true)+'\n\nPogledaj u 3D: '+url(true)+'\n\nMolim da me kontaktirate radi dogovora razgovora.\nTelefon: '+(tel||'(nije upisan)')+'\nIme i prezime:\n'}
+const r2=v=>Math.round((v+1e-9)*100)/100,eur2=v=>r2(v).toLocaleString('hr-HR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €',esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function ponudaStavke(){cijena();return ZADNJE.rows.filter(r=>r[3]!=null||r[1]!=null).map(([t,m2,c,iz])=>{t=PON.opisi[t]||t;if(m2==null)return [t,null,null,r2(iz)];const q=r2(m2);return [t,q,c,r2(q*c)]})}
+function ponudaHTML(){const S=ponudaStavke(),bez=r2(S.reduce((a,x)=>a+(x[3]||0),0)),pdv=r2(bez*CIJ.pdv),sa=r2(bez+pdv),d=new Date(),dat=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+'.';
+  const u=['straga','lijevo','desno','vrata'],nz={straga:'straga',lijevo:'lijevi bok',desno:'desni bok',vrata:'vrata'},gr={};u.forEach(k=>{const t=ISP[cfg.isp[k]].t.toLowerCase();(gr[t]=gr[t]||[]).push(nz[k])});
+  const izv='Ispuna: '+Object.entries(gr).map(([t,a])=>a.join(' i ')+' '+t).join(', ')+'. Teren: '+(TMODE==='ravno'?'ravan plato (pripremni radovi).':'kosina, konstrukcija prati nagib.');
+  const red=S.map((x,i)=>`<tr><td>${i+1}.</td><td>${esc(x[0])}</td><td class="n">${x[1]==null?'':String(x[1].toFixed(2)).replace('.',',')+' m²'}</td><td class="n">${x[2]==null?'':eur2(x[2])+'/m²'}</td><td class="n">${eur2(x[3])}</td></tr>`).join('');
+  const tel=BREND.telTxt.replace(/ /g,'');
+  return {bez,pdv,sa,izv,html:`<header class="zag"><div class="r1"><img src="${BREND.logo}" alt="Flash Metal"><div class="kont"><a href="mailto:${BREND.mail}">${esc(BREND.mail)}</a><span>Mob: <a href="tel:${tel}">${esc(BREND.telTxt)}</a></span></div></div>
+<div class="l1">${esc(PON.firma)}</div><div class="l2">${esc(PON.banka)}   |   Tel: ${esc(BREND.telTxt)}   |   E-mail: ${esc(BREND.mail)}</div></header>
+<div class="body"><h1>${esc(PON.naslov)}</h1><p class="nesl">${esc(PON.nesluzbena)}</p>
+<div class="info"><div><p><b>Datum ponude:</b> ${dat}</p><p><b>Mjesto ponude:</b> ${esc(PON.mjesto)}</p></div>${PON.kupac?`<div class="kupac">${esc(PON.kupac)}</div>`:''}</div>
+<div class="pay"><b>Način plaćanja:</b> ${esc(PON.nacin)}&nbsp;&nbsp;&nbsp; <b>OIB kupca:</b> ${esc(PON.oib)}</div>
+<p class="pred">Objekt: ${esc(PON.objekt)}. ${esc(PON.predmet.replace('{gab}',GAB()))}</p><p class="izv">${esc(izv)}</p>
+<table><tr><th></th><th>Stavka</th><th class="n">Količina</th><th class="n">Jed. cijena</th><th class="n">Iznos</th></tr>${red}${CIJ.piloti?`<tr class="opc"><td></td><td>${esc(PON.opcija)}</td><td></td><td></td><td class="n">${eur2(CIJ.piloti)}</td></tr>`:''}</table>
+<div class="nap"><b>Napomena:</b> Ponuda vrijedi ${PON.vrijedi} dana. Rok izvedbe po dogovoru.\n${esc(CIJ.napomena(eur2(CIJ.piloti)))}\nZa službenu ponudu pošaljite zahtjev s ove stranice i ostavite broj telefona — javit ćemo vam se u roku ${esc(PON.javljanje)} da dogovorimo razgovor.</div>
+<div class="totals"><div><div class="lbl">UKUPNO BEZ PDV-a</div><div class="val">${eur2(bez)}</div></div><div><div class="lbl">PDV (${Math.round(CIJ.pdv*100)}%)</div><div class="val">${eur2(pdv)}</div></div><div><div class="lbl">UKUPNO SA PDV-om</div><div class="val">${eur2(sa)}</div></div></div>
+<div class="sig">${esc(PON.potpis)}  ______________________</div></div>`}}
+function otvoriPonudu(){$('oDoc').innerHTML=ponudaHTML().html;$('odlg').classList.add('on');$('odlg').scrollTop=0}
+function otvori(id){$(id).classList.add('on')}function zatvori(){['sdlg','pdlg','odlg'].forEach(i=>$(i).classList.remove('on'))}
+$('bShare').onclick=()=>{$('sCijRow').hidden=!IMA_CIJ;osvjeziDijeli();otvori('sdlg')};
+function osvjeziZahtjev(){const t=ponudaTxt();$('pTxt').textContent=t;$('pMail').href='mailto:'+KONTAKT.mail+'?subject='+encodeURIComponent('Zahtjev za službenu ponudu – spremište za kontejnere, '+PON.objekt)+'&body='+encodeURIComponent(t);
+  $('pWa').href='https://wa.me/'+KONTAKT.tel+'?text='+encodeURIComponent(t)}
+$('pUvod').textContent='Pošaljite zahtjev s odabranom varijantom. Ostavite broj telefona i javit ćemo vam se u roku '+PON.javljanje+' da dogovorimo razgovor.';
+$('pTel').oninput=osvjeziZahtjev;
+$('bPon').hidden=!KONTAKT.mail&&!KONTAKT.tel;$('bPon').onclick=()=>{zatvori();osvjeziZahtjev();$('pKont').textContent='E-mail: '+KONTAKT.mail+' · Mob: '+KONTAKT.telTxt;otvori('pdlg')};
+if($('bOff'))$('bOff').onclick=otvoriPonudu;$('oZat').onclick=zatvori;$('oSl').onclick=()=>$('bPon').click();$('oPdf').onclick=()=>{try{window.print()}catch(e){}};
+document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>{sCij=b.dataset.sc==='1';osvjeziDijeli()});
+$('sShare').onclick=async()=>{try{await navigator.share({title:'Spremište za kontejnere',text:dijeliTxt().replace(/\n\nPogledaj u 3D: .*$/,''),url:url(sCij)})}catch(e){}};
+const kopiraj=(btn,pre)=>async()=>{try{await navigator.clipboard.writeText($(pre).textContent);$(btn).textContent='Kopirano ✓'}catch(e){const r=document.createRange();r.selectNodeContents($(pre));const s=getSelection();s.removeAllRanges();s.addRange(r);$(btn).textContent='Označeno — kopirajte'}setTimeout(()=>$(btn).textContent='Kopiraj tekst',2500)};
+$('sCp').onclick=kopiraj('sCp','sTxt');$('pCp').onclick=kopiraj('pCp','pTxt');
+['sZat','pZat'].forEach(i=>$(i).onclick=zatvori);['sdlg','pdlg'].forEach(i=>$(i).onclick=e=>{if(e.target===$(i))zatvori()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')zatvori()});
+if(!IMA_CIJ)$('bOff')?.remove();
+if(izKoda(location.hash)){cur=[];ui();build()}
+if(IMA_CIJ&&skrivenaCij){$('cij').hidden=true;$('barTxt').textContent='';}
+
+const TRAG=(()=>{if(!CFG.umami)return{t(){}};
+  try{const q=new URLSearchParams(location.search);if(CFG.umamiJa&&q.get('nb')===CFG.umamiJa){localStorage.setItem('umami.disabled','1');q.delete('nb');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash)}
+    if(localStorage.getItem('umami.disabled')){$('nTrag').hidden=false;return{t(){}}}}catch(e){}
+  const sc=document.createElement('script');sc.defer=true;sc.src=CFG.umamiSrc;sc.dataset.websiteId=CFG.umami;sc.dataset.doNotTrack='true';document.head.appendChild(sc);
+  $('nTrag').hidden=false;$('sInfo').textContent='Poveznica u poruci otvara upravo ovu varijantu.';
+  const red=[];const t=(n,d)=>{try{if(window.umami&&umami.track){while(red.length){const [a,b]=red.shift();umami.track(a,b)}umami.track(n,d)}else red.push([n,d])}catch(e){}};
+  let zadnji='',tm=0;const var_=()=>{clearTimeout(tm);tm=setTimeout(()=>{const k=kod(true);if(k!==zadnji){zadnji=k;t('varijanta',{kod:k,opis:opisV(true).slice(0,400)})}},2500)};
+  const _b=build;build=function(){_b.apply(this,arguments);var_()};var_();
+  const jednom=(id,n)=>{const e=$(id);if(!e||!window.IntersectionObserver)return;const o=new IntersectionObserver(x=>{if(x.some(i=>i.isIntersecting)){o.disconnect();t(n)}},{threshold:.4});o.observe(e)};
+  jednom('cij','vidio-cijenu');jednom('stat','vidio-statiku');
+  [['bShare','dijeli'],['bPon','ponuda-otvori'],['pMail','ponuda-email'],['pWa','ponuda-whatsapp'],['pCp','ponuda-kopiraj'],['sWa','dijeli-whatsapp'],['sMail','dijeli-email'],['sCp','dijeli-kopiraj'],['bHelp','pomoc'],['bOff','nesluzbena-ponuda'],['oPdf','nesluzbena-pdf'],['oSl','sluzbena-iz-ponude']].forEach(([id,n])=>{const e=$(id);if(e)e.addEventListener('click',()=>t(n,{kod:kod(true)}))});
+  document.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>t('pogled',{v:b.dataset.v})));
+  return{t}})();
+</script></body></html>
